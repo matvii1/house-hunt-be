@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/househunterdb
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=mypassword
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - house-hunter-m2-cache:/root/.m2
+      - ./src:/app/src
+      - ./pom.xml:/app/pom.xml
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    volumes:
+      - house-hunter-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  house-hunter-m2-cache:
+  house-hunter-db-data:
