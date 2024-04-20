@@ -15,14 +15,21 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
-import java.awt.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "properties")
 public class Property {
 
@@ -37,9 +44,6 @@ public class Property {
     @NotEmpty(message = "Address is required")
     private String address;
 
-    private double locationX;
-    private double locationY;
-
     @DecimalMin(value = "0", message = "Price must be a positive number")
     private double price;
 
@@ -48,7 +52,7 @@ public class Property {
 
     @NotEmpty(message = "Type is required")
     private String type;
-
+    @NotEmpty(message = "Furnished info can not be empty")
     private boolean isFurnished;
 
     @PositiveOrZero(message = "Floor number cannot be negative")
@@ -58,8 +62,8 @@ public class Property {
     private Date moveInDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Image> images = new HashSet<>();

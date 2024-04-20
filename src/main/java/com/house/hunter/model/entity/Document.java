@@ -14,10 +14,13 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -30,6 +33,7 @@ public class Document {
 
     @NotEmpty(message = "Document URL is required")
     @Column(name = "url")
+    // url for storing the document in a cloud storage
     private String url;
 
     @Enumerated(EnumType.STRING)
@@ -37,7 +41,7 @@ public class Document {
     private DocumentType documentType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     // Constructors, getters, and setters
