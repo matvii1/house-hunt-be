@@ -46,6 +46,9 @@ public class User {
     @NotEmpty(message = "Email is required")
     private String email;
 
+    @Pattern(regexp = "^\\+(?:[0-9] ?){6,14}[0-9]$", message = "Invalid phone number format")
+    private String phoneNumber;
+
     // Store hashed password, not the blob directly. Ensure security by using a strong hash function.
     @NotEmpty(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")

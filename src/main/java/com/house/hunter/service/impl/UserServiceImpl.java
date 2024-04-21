@@ -14,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
+import javax.validation.Valid;
 import java.util.Optional;
 
 @AllArgsConstructor
@@ -25,7 +26,7 @@ public class UserServiceImpl implements UserService {
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Transactional
-    public void registerUser(final UserRegistrationDto userRegistrationDto) {
+    public void registerUser(@Valid final UserRegistrationDto userRegistrationDto) {
         if (userRepository.existsByEmail(userRegistrationDto.getEmail())) {
             throw new UserAlreadyExistsException(userRegistrationDto.getEmail());
         }
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    public UserGetResponseDto getUser(final String email) {
+    public UserGetResponseDto getUser(@Valid final String email) {
         return userRepository.findByEmail(email)
                 .map(user -> {
                     LOGGER.info("User found: {}", user.getEmail());
@@ -47,13 +48,13 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException(email));
     }
 
-    public boolean authenticateUser(UserCredentialsDto userCredentialsDto) {
+    public boolean authenticateUser(@Valid UserCredentialsDto userCredentialsDto) {
         final Optional<User> user = userRepository.findByEmail(userCredentialsDto.getEmail());
         return user.isPresent() && PasswordEncoder.matches(userCredentialsDto.getPassword(), user.get().getPassword());
     }
 
     @Transactional
-    public void updatePassword(final String password, final String email) {
+    public void updatePassword(@Valid final String password, @Valid final String email) {
         final User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
         LOGGER.info("User found: {}", email);
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public void deleteUser(String email) {
+    public void deleteUser(@Valid String email) {
         final User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
         LOGGER.info("User deleted: {}", user.getEmail());

@@ -11,11 +11,15 @@ public interface LoggingAspect {
     Logger getLogger();
 
     default void logBeforeMethod(JoinPoint joinPoint) {
-        getLogger().info("Entering method: {}", joinPoint.getSignature());
+        getLogger().info("Executing: {} operation", joinPoint.getSignature());
     }
 
     default void logAfterReturning(JoinPoint joinPoint, Object result) {
-        getLogger().info("Exiting method: {}, Returned value: {}", joinPoint.getSignature(), result);
+        if (result == null) {
+            getLogger().info("Finished execution of: {}", joinPoint.getSignature());
+            return;
+        }
+        getLogger().info("Finished execution of: {}, Returned value: {}", joinPoint.getSignature(), result);
     }
 
     default void logAfterThrowing(JoinPoint joinPoint, Throwable exception) {

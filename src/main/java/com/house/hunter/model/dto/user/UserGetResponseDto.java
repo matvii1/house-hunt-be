@@ -17,6 +17,7 @@ public class UserGetResponseDto {
     private String name;
     private String surname;
     private String email;
+    private String phoneNumber;
     private UserRole role;
     private UserStatus status;
     private Set<Document> documents;
