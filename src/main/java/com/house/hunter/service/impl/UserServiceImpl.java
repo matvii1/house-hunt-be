@@ -7,11 +7,14 @@ import com.house.hunter.model.dto.user.UserGetResponseDto;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.UserRepository;
+import com.house.hunter.service.UserService;
+import com.house.hunter.util.JWTUtil;
 import com.house.hunter.util.PasswordEncoder;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
@@ -23,6 +26,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final AuthenticationManager authenticationManager;
+    private final JWTUtil jwtUtil;
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Transactional

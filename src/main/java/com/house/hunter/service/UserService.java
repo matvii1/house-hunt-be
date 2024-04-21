@@ -1,4 +1,4 @@
-package com.house.hunter.service.impl;
+package com.house.hunter.service;
 
 import com.house.hunter.model.dto.user.UserCredentialsDto;
 import com.house.hunter.model.dto.user.UserGetResponseDto;

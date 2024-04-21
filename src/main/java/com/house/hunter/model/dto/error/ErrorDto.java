@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ValidationErrorDto {
+public class ErrorDto {
     private final int status;
     private final String message;
     private final List<String> details;
