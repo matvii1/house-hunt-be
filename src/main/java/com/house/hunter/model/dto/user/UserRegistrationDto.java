@@ -23,7 +23,8 @@ public class UserRegistrationDto {
     private String phoneNumber;
 
     @NotEmpty(message = "User role is required")
-    private String userRole;
+    @Pattern(regexp = "ADMIN|LANDLORD|TENANT", message = "Invalid user role")
+    private String role;
 
     @NotEmpty(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")

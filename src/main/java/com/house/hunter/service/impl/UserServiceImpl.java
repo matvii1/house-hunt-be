@@ -2,8 +2,9 @@ package com.house.hunter.service.impl;
 
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
-import com.house.hunter.model.dto.user.UserCredentialsDto;
 import com.house.hunter.model.dto.user.UserGetResponseDto;
+import com.house.hunter.model.dto.user.UserLoginDto;
+import com.house.hunter.model.dto.user.UserLoginResponseDto;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.UserRepository;
@@ -15,6 +16,8 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
@@ -23,11 +26,10 @@ import java.util.Optional;
 @AllArgsConstructor
 @Service
 public class UserServiceImpl implements UserService {
-
-    private final UserRepository userRepository;
-    private final ModelMapper modelMapper;
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Transactional
@@ -43,6 +45,25 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    public UserLoginResponseDto login(UserLoginDto loginDto) {
+        final Authentication authentication =
+                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
+        final String email = authentication.getName();
+        final User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+        final String token = jwtUtil.generateAccessToken(user);
+        return new UserLoginResponseDto(email, token);
+    }
+
+    public String refreshAccessToken(String refreshToken) {
+        if (jwtUtil.validateToken(refreshToken)) {
+            String username = jwtUtil.getUsernameFromToken(refreshToken);
+            Optional<User> user = userRepository.findByEmail(username);
+            if (user.isPresent()) {
+                return jwtUtil.generateAccessToken(user.get());
+            }
+        }
+        return null;
+    }
 
     public UserGetResponseDto getUser(@Valid final String email) {
         return userRepository.findByEmail(email)
@@ -51,11 +72,6 @@ public class UserServiceImpl implements UserService {
                     return modelMapper.map(user, UserGetResponseDto.class);
                 })
                 .orElseThrow(() -> new UserNotFoundException(email));
-    }
-
-    public boolean authenticateUser(@Valid UserCredentialsDto userCredentialsDto) {
-        final Optional<User> user = userRepository.findByEmail(userCredentialsDto.getEmail());
-        return user.isPresent() && PasswordEncoder.matches(userCredentialsDto.getPassword(), user.get().getPassword());
     }
 
     @Transactional

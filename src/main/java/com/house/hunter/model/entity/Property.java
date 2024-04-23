@@ -52,6 +52,7 @@ public class Property {
 
     @NotEmpty(message = "Type is required")
     private String type;
+
     @NotEmpty(message = "Furnished info can not be empty")
     private boolean isFurnished;
 
@@ -68,6 +69,5 @@ public class Property {
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Image> images = new HashSet<>();
 
-    // Constructors, getters, and setters
 }
 

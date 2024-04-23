@@ -1,6 +1,5 @@
 package com.house.hunter.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.house.hunter.util.JWTUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -8,63 +7,60 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-@Component
 @AllArgsConstructor
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
-
     private final JWTUtil jwtUtil;
-    private final ObjectMapper mapper;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Map<String, Object> errorDetails = new HashMap<>();
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+        String token = getTokenFromRequest(request);
 
-        try {
-            final String accessToken = jwtUtil.resolveToken(request);
-            if (accessToken == null) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-            System.out.println("token : " + accessToken);
+        if (token != null && jwtUtil.validateToken(token)) {
+            String username = jwtUtil.getUsernameFromToken(token);
             Claims claims = jwtUtil.resolveClaims(request);
+            String role = claims.get("role", String.class);
 
-            if (claims != null & jwtUtil.validateClaims(claims)) {
-                String email = claims.getSubject();
-                String role = jwtUtil.getRole(claims);
-                System.out.println("email : " + email);
-                System.out.println("role : " + role);
-
-                List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-
-                Authentication authentication =
-                        new UsernamePasswordAuthenticationToken(email, null, authorities);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+            SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    username, null, List.of(authority));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } else if (isRefreshTokenRequest(request)) {
+            String refreshToken = getRefreshTokenFromRequest(request);
+            if (refreshToken != null && jwtUtil.validateToken(refreshToken)) {
+                String newAccessToken = jwtUtil.generateNewAccessToken(refreshToken);
+                if (newAccessToken != null) {
+                    response.setHeader("Access-Token", newAccessToken);
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    return;
+                }
             }
-        } catch (Exception e) {
-            errorDetails.put("message", "Authentication Error");
-            errorDetails.put("details", e.getMessage());
-            response.setStatus(HttpStatus.FORBIDDEN.value());
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-            mapper.writeValue(response.getWriter(), errorDetails);
-
         }
-        filterChain.doFilter(request, response);
+
+        chain.doFilter(request, response);
+    }
+
+    private String getTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
+
+    private boolean isRefreshTokenRequest(HttpServletRequest request) {
+        return request.getRequestURI().equals("/api/v1/user/refresh-token");
+    }
+
+    private String getRefreshTokenFromRequest(HttpServletRequest request) {
+        return request.getHeader("Refresh-Token");
     }
 }

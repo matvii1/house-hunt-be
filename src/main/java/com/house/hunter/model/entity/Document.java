@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.validator.constraints.URL;
 
 @Getter
 @Setter
@@ -31,6 +32,7 @@ public class Document {
     private String id;
 
     @NotEmpty(message = "Document URL is required")
+    @URL(message = "Invalid URL")
     @Column(name = "url")
     // url for storing the document in a cloud storage
     private String url;
