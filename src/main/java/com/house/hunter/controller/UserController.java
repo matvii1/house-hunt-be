@@ -6,6 +6,7 @@ import com.house.hunter.model.dto.user.UserLoginDto;
 import com.house.hunter.model.dto.user.UserLoginResponseDto;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.service.UserService;
+import com.house.hunter.service.impl.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "User Controller", description = "Endpoints for user management")
 public class UserController {
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
 
     @GetMapping("/{email}")
     @Operation(summary = "Get user by email")
@@ -47,15 +48,15 @@ public class UserController {
         return userService.login(loginDto);
     }
 
-    @PostMapping("/refresh-token")
-    public ResponseEntity<String> refreshAccessToken(@RequestHeader("Refresh-Token") String refreshToken) {
-        String newAccessToken = userService.refreshAccessToken(refreshToken);
+/*    @PostMapping("/refresh-token")
+    public ResponseEntity<String> refreshAccessToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        String newAccessToken = refreshTokenService.createRefreshToken(refreshTokenRequestDTO);
         if (newAccessToken != null) {
             return ResponseEntity.ok(newAccessToken);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-    }
+    }*/
 
     @PostMapping("/register")
     @Operation(summary = "Register user")
