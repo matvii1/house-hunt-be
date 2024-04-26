@@ -6,6 +6,8 @@ import com.house.hunter.util.SecretKeyGenerator;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,6 +16,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @EnableWebSecurity
 @AllArgsConstructor
@@ -30,23 +37,44 @@ public class SecurityConfiguration {
         return authenticationManagerBuilder.build();
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://example.com", "http://localhost:4200"));
+        configuration.setAllowedMethods(Arrays.asList(
+                HttpMethod.GET.name(),
+                HttpMethod.POST.name(),
+                HttpMethod.PUT.name(),
+                HttpMethod.DELETE.name()
+        ));
+        configuration.setAllowedHeaders(Arrays.asList(
+                HttpHeaders.AUTHORIZATION,
+                HttpHeaders.CONTENT_TYPE
+        ));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-              /*          .requestMatchers("/token/**").permitAll()
-                        .requestMatchers("/api/v1/user/**").hasAnyRole(UserRole.ADMIN.getRole(), UserRole.LANDLORD.getRole(), UserRole.TENANT.getRole())
-                        .requestMatchers("/api/v1/auth/**").hasRole(UserRole.LANDLORD.name())
-                        .requestMatchers("/api/v1/tenant/**").hasRole(UserRole.TENANT.name())*/
+                        /*          .requestMatchers("/token/**").permitAll()
+                                  .requestMatchers("/api/v1/user/**").hasAnyRole(UserRole.ADMIN.getRole(), UserRole.LANDLORD.getRole(), UserRole.TENANT.getRole())
+                                  .requestMatchers("/api/v1/auth/**").hasRole(UserRole.LANDLORD.name())
+                                  .requestMatchers("/api/v1/tenant/**").hasRole(UserRole.TENANT.name())*/
                         .anyRequest().permitAll()
                 )
 
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            /*    .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.name())
-                .requestMatchers("/api/landlord/**").hasRole(UserRole.LANDLORD.name())
-                .requestMatchers("/api/tenant/**").hasRole(UserRole.TENANT.name())*/
+                /*    .requestMatchers("/api/admin/**").hasRole(UserRole.ADMIN.name())
+                    .requestMatchers("/api/landlord/**").hasRole(UserRole.LANDLORD.name())
+                    .requestMatchers("/api/tenant/**").hasRole(UserRole.TENANT.name())*/
                 .build();
 
     }
