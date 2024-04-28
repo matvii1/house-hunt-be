@@ -33,7 +33,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             if (refreshToken != null && jwtUtil.validateToken(refreshToken)) {
                 String newAccessToken = jwtUtil.generateNewAccessToken(refreshToken);
                 if (newAccessToken != null) {
-                    response.setHeader("Access-Token", newAccessToken);
+                    response.setHeader("Access-AccessToken", newAccessToken);
                     response.setStatus(HttpServletResponse.SC_OK);
                     return;
                 }
@@ -56,6 +56,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     private String getRefreshTokenFromRequest(HttpServletRequest request) {
-        return request.getHeader("Refresh-Token");
+        return request.getHeader("Refresh-AccessToken");
     }
 }

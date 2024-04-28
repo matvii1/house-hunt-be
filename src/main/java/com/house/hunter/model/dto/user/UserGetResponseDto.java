@@ -6,11 +6,13 @@ import com.house.hunter.constant.UserStatus;
 import com.house.hunter.model.entity.Document;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Set;
 
 @AllArgsConstructor
 @Data
+@NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserGetResponseDto {
     private String id;

@@ -26,6 +26,8 @@ public class JWTUtil {
     private final String secretKey;
     @Value("${jwt.access.expiration}")
     private long accessTokenExpirationTime;
+    @Value("${jwt.refresh.expiration}")
+    private long refreshTokenExpirationTime;
 
     private UserRepository userRepository;
     private static final String TOKEN_HEADER = "Authorization";
@@ -36,26 +38,30 @@ public class JWTUtil {
     }
 
     public RefreshToken generateRefreshToken(User user) {
-        String token = generateAccessToken(user);
+        String token = buildRefreshToken(user.getEmail(), user.getRole());
         return RefreshToken.builder()
                 .user(user)
                 .token(token)
-                .expiryDate(new Date(System.currentTimeMillis() + accessTokenExpirationTime).toInstant())
+                .expiryDate(new Date(System.currentTimeMillis() + refreshTokenExpirationTime).toInstant())
                 .build();
     }
 
-    public String generateAccessToken(User user) {
-        return buildToken(user.getEmail(), user.getRole());
+    public String buildRefreshToken(String email, UserRole role) {
+        return buildToken(email, role, refreshTokenExpirationTime);
     }
 
-    private String buildToken(String email, UserRole role) {
+    public String buildAccessToken(String email, UserRole role) {
+        return buildToken(email, role, accessTokenExpirationTime);
+    }
+
+    private String buildToken(String email, UserRole role, long expirationTime) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
         claims.put("role", role);
         return TOKEN_PREFIX + Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(Date.from(Instant.now()))
-                .setExpiration(Date.from(Instant.now().plusMillis(accessTokenExpirationTime)))
+                .setExpiration(Date.from(Instant.now().plusMillis(expirationTime)))
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
@@ -87,10 +93,6 @@ public class JWTUtil {
 
     public String getEmailFromToken(String token) {
         return parseClaims(token).get("email", String.class);
-    }
-
-    public String refreshToken(User user) {
-        return generateAccessToken(user);
     }
 
 

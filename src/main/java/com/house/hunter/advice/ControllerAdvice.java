@@ -1,12 +1,12 @@
 package com.house.hunter.advice;
 
+import com.house.hunter.exception.InvalidRefreshTokenException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.model.dto.error.ErrorDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.validation.ConstraintViolation;
@@ -14,8 +14,8 @@ import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@ControllerAdvice
-public final class UserControllerAdvice {
+@org.springframework.web.bind.annotation.ControllerAdvice
+public final class ControllerAdvice {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorDto> handleValidationException(ConstraintViolationException ex) {
         List<String> errorMessages = ex.getConstraintViolations().stream()
@@ -37,6 +37,12 @@ public final class UserControllerAdvice {
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorDto> handleValidationException(UserAlreadyExistsException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.CONFLICT.value(), "User already exists", List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(InvalidRefreshTokenException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), "Provided token is invalid", List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 

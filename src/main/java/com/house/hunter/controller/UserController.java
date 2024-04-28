@@ -1,12 +1,12 @@
 package com.house.hunter.controller;
 
+import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.model.dto.user.UserCredentialsDto;
 import com.house.hunter.model.dto.user.UserGetResponseDto;
 import com.house.hunter.model.dto.user.UserLoginDto;
 import com.house.hunter.model.dto.user.UserLoginResponseDto;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.service.UserService;
-import com.house.hunter.service.impl.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,42 +21,28 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@RestController("api/v1/user")
+@RestController
+@RequestMapping("/api/v1/user")
 @AllArgsConstructor
 @Validated
 @Tag(name = "User Controller", description = "Endpoints for user management")
 public class UserController {
     private final UserService userService;
-    private final RefreshTokenService refreshTokenService;
 
-    @GetMapping("/{email}")
+    @GetMapping("/email")
     @Operation(summary = "Get user by email")
     @ResponseStatus(HttpStatus.OK)
     /*    @PreAuthorize("hasRole('ADMIN')")*/
-    public ResponseEntity<UserGetResponseDto> getUser(@PathVariable @Valid @Email final String email) {
+    public ResponseEntity<UserGetResponseDto> getUser(@RequestParam @Valid @Email final String email) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(email));
     }
 
-    @PostMapping(value = "/login")
-    @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Login user")
-    public UserLoginResponseDto login(@RequestBody UserLoginDto loginDto) {
-        return userService.login(loginDto);
-    }
-
-/*    @PostMapping("/refresh-token")
-    public ResponseEntity<String> refreshAccessToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        String newAccessToken = refreshTokenService.createRefreshToken(refreshTokenRequestDTO);
-        if (newAccessToken != null) {
-            return ResponseEntity.ok(newAccessToken);
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-    }*/
 
     @PostMapping("/register")
     @Operation(summary = "Register user")
