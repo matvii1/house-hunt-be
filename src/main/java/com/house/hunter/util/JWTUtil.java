@@ -5,10 +5,8 @@ import com.house.hunter.model.entity.RefreshToken;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.UserRepository;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,24 +64,12 @@ public class JWTUtil {
                 .compact();
     }
 
-    public boolean validateToken(String token) {
-        if (token == null) {
-            return false;
-        }
+    public boolean validateTokenWithoutPrefix(String token) {
         try {
-            if (validateTokenFormat(token)) {
-                token = trimTokenPrefix(token);
-                return validateTokenClaims(parseClaims(token));
-            } else {
-                return false;
-            }
+            return validateTokenClaims(parseClaims(token));
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private String trimTokenPrefix(String token) {
-        return token.substring(TOKEN_PREFIX.length());
     }
 
 
@@ -96,58 +82,32 @@ public class JWTUtil {
     }
 
 
-    public Claims resolveClaims(HttpServletRequest req) {
-        try {
-            // Get the token from the request
-            final String token = extractTokenFromRequest(req);
-            if (token != null) {
-                return parseClaims(token);
-            }
-            return null;
-        } catch (ExpiredJwtException ex) {
-            req.setAttribute("expired", ex.getMessage());
-            throw ex;
-        } catch (Exception ex) {
-            req.setAttribute("invalid", ex.getMessage());
-            throw ex;
-        }
-    }
-
-    private String extractTokenFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader(TOKEN_HEADER);
-        // Check if the token is in the correct format and has valid claims
-        if (validateTokenFormat(bearerToken) && validateTokenClaims(parseClaims(bearerToken))) {
-            return bearerToken.substring(TOKEN_PREFIX.length());
-        }
-        return null;
-    }
-
-    private boolean validateTokenFormat(String token) {
-        return token != null && token.startsWith(TOKEN_PREFIX);
-    }
-
     private boolean validateTokenClaims(Claims claims) {
         try {
+            Date exp = claims.get("exp", Date.class);
+            Instant expirationTime = exp.toInstant();
+
             // Check if the token is expired, email is invalid, or role is invalid
-            return claims.getExpiration().after(new Date()) &&
+            return expirationTime.isAfter(Instant.now()) &&
                     getEmail(claims) != null && !getEmail(claims).isEmpty() &&
                     getRole(claims) != null && isValidRole(getRole(claims));
         } catch (Exception e) {
             return false;
         }
     }
-
     private boolean isValidRole(String role) {
         // Check if the role is one of the allowed roles
         return role.equals("ADMIN") || role.equals("LANDLORD") || role.equals("TENANT") || role.equals("GUEST");
     }
 
     private String getEmail(Claims claims) {
-        return claims.getSubject();
+        var deg = claims.get("email", String.class);
+        return deg;
     }
 
     private String getRole(Claims claims) {
-        return (String) claims.get("role");
+        var deg = claims.get("role", String.class);
+        return deg;
     }
 
 }

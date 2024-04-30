@@ -3,6 +3,7 @@ package com.house.hunter.advice;
 import com.house.hunter.exception.InvalidRefreshTokenException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.model.dto.error.ErrorDto;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -49,6 +50,12 @@ public final class ControllerAdvice {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorDto> handleValidationException(BadCredentialsException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), "Invalid username or password", List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(ExpiredJwtException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), "JWT is expired", List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
