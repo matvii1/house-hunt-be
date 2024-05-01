@@ -47,13 +47,16 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/user/**").hasAnyRole(UserRole.ADMIN.getRole(), UserRole.LANDLORD.getRole(), UserRole.TENANT.getRole())
+                        .requestMatchers("/api/v1/user/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/property/**").permitAll()
+                        // TODO add the revoking token mechanism
+                        // TODO WHEN DELETING THE USER WHY IT RETURNS 500
                         //TODO change the following line to permitAll() to allow access to the Swagger UI, configure the Swagger UI to use the JWT token
                         .requestMatchers("/swagger-ui").permitAll()
                         .anyRequest().permitAll()
                 )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authenticationProvider(authenticationProvider())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -78,6 +81,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("*"));
         configuration.setAllowedOrigins(List.of("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(),
