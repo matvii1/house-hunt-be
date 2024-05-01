@@ -7,6 +7,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -43,7 +44,7 @@ public final class ControllerAdvice {
 
     @ExceptionHandler(InvalidRefreshTokenException.class)
     public ResponseEntity<ErrorDto> handleValidationException(InvalidRefreshTokenException ex) {
-        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), "Provided token is invalid", List.of(ex.getMessage()));
+        final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
@@ -58,5 +59,12 @@ public final class ControllerAdvice {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), "JWT is expired", List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
+
+    @ExceptionHandler(InternalAuthenticationServiceException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(InternalAuthenticationServiceException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
 
 }

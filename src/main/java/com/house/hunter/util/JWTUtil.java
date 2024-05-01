@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @AllArgsConstructor
@@ -36,16 +37,12 @@ public class JWTUtil {
     }
 
     public RefreshToken generateRefreshToken(User user) {
-        String token = buildRefreshToken(user.getEmail(), user.getRole());
+        final String token = UUID.randomUUID().toString();
         return RefreshToken.builder()
                 .user(user)
                 .token(token)
                 .expiryDate(new Date(System.currentTimeMillis() + refreshTokenExpirationTime).toInstant())
                 .build();
-    }
-
-    public String buildRefreshToken(String email, UserRole role) {
-        return buildToken(email, role, refreshTokenExpirationTime);
     }
 
     public String buildAccessToken(String email, UserRole role) {
@@ -95,6 +92,7 @@ public class JWTUtil {
             return false;
         }
     }
+
     private boolean isValidRole(String role) {
         // Check if the role is one of the allowed roles
         return role.equals("ADMIN") || role.equals("LANDLORD") || role.equals("TENANT") || role.equals("GUEST");

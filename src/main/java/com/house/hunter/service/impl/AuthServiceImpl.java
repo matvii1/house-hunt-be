@@ -40,11 +40,15 @@ public class AuthServiceImpl implements AuthService {
         throw new InvalidUserAuthenticationException();
     }
 
-    public String renewRefreshToken(String token) {
+    // get the refresh token, validate its expiration, if valid generate a access new token
+    public String refreshToken(String token) {
+        // get the refresh token from the database
         final RefreshToken refreshToken = refreshTokenRepository.findByToken(token).orElseThrow(InvalidRefreshTokenException::new);
+        // validate the expiration of the refresh token
         verifyExpiration(refreshToken);
+        // get the user from the refresh token and generate a new access token
         final User user = refreshToken.getUser();
-        return jwtUtil.buildRefreshToken(user.getEmail(), user.getRole());
+        return jwtUtil.buildAccessToken(user.getEmail(), user.getRole());
     }
 
     private RefreshToken createRefreshToken(User user) {
@@ -64,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
     private RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
-            throw new InvalidRefreshTokenException(token.getToken() + " Refresh token is expired. Please make a new login..!");
+            throw new InvalidRefreshTokenException(" Refresh token is expired. Please make a new login..!");
         }
         return token;
     }

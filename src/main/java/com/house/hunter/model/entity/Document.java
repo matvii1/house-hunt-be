@@ -19,6 +19,8 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.validator.constraints.URL;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,7 +31,7 @@ public class Document {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    private String id;
+    private UUID id;
 
     @NotEmpty(message = "Document URL is required")
     @URL(message = "Invalid URL")

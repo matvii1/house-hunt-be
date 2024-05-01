@@ -23,6 +23,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Entity
@@ -34,7 +35,7 @@ public class User {
     @GeneratedValue(generator = "UUID")
     @NotNull
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    private String id;
+    private UUID id;
 
     @NotEmpty(message = "Name is required")
     private String name;

@@ -2,6 +2,7 @@ package com.house.hunter.controller;
 
 import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.model.dto.token.RefreshTokenRequestDTO;
+import com.house.hunter.model.dto.token.RefreshTokenResponseDTO;
 import com.house.hunter.model.dto.user.UserLoginDto;
 import com.house.hunter.model.dto.user.UserLoginResponseDto;
 import com.house.hunter.service.AuthService;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,12 +26,12 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/refreshToken")
-    public ResponseEntity<String> refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
-        return ResponseEntity.ok().body(authService.renewRefreshToken(refreshTokenRequestDTO.getToken()));
+    @PostMapping(value = "/refreshToken", produces = "application/json")
+    public RefreshTokenResponseDTO refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
+        return RefreshTokenResponseDTO.builder().token(authService.refreshToken(refreshTokenRequestDTO.getToken())).build();
     }
 
-    @PostMapping(value = "/login")
+    @PostMapping(value = "/login", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Login user")
     public UserLoginResponseDto login(@RequestBody UserLoginDto loginDto) throws InvalidUserAuthenticationException {
