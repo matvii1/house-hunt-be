@@ -1,5 +1,7 @@
 package com.house.hunter.service.impl;
 
+import com.house.hunter.constant.UserRole;
+import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.user.UserGetResponseDto;
@@ -61,6 +63,9 @@ public class UserServiceImpl implements UserService {
         final User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
         LOGGER.info("User deleted: {}", user.getEmail());
+        if (user.getRole().equals(UserRole.ADMIN)) {
+            throw new IllegalRequestException("Admin cannot be deleted");
+        }
         userRepository.delete(user);
     }
 

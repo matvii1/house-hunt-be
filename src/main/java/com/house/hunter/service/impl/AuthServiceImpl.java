@@ -1,6 +1,6 @@
 package com.house.hunter.service.impl;
 
-import com.house.hunter.exception.InvalidRefreshTokenException;
+import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.model.dto.user.UserLoginDto;
 import com.house.hunter.model.dto.user.UserLoginResponseDto;
@@ -43,7 +43,8 @@ public class AuthServiceImpl implements AuthService {
     // get the refresh token, validate its expiration, if valid generate a access new token
     public String refreshToken(String token) {
         // get the refresh token from the database
-        final RefreshToken refreshToken = refreshTokenRepository.findByToken(token).orElseThrow(InvalidRefreshTokenException::new);
+        final RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
         // validate the expiration of the refresh token
         verifyExpiration(refreshToken);
         // get the user from the refresh token and generate a new access token
@@ -68,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
     private RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
-            throw new InvalidRefreshTokenException(" Refresh token is expired. Please make a new login..!");
+            throw new InvalidTokenException(" Refresh token is expired. Please make a new login..!");
         }
         return token;
     }

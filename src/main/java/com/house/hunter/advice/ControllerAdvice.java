@@ -1,6 +1,6 @@
 package com.house.hunter.advice;
 
-import com.house.hunter.exception.InvalidRefreshTokenException;
+import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.model.dto.error.ErrorDto;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -42,8 +42,8 @@ public final class ControllerAdvice {
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
-    @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<ErrorDto> handleValidationException(InvalidRefreshTokenException ex) {
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(InvalidTokenException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }

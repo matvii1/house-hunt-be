@@ -1,5 +1,6 @@
 package com.house.hunter.security;
 
+import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.util.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,13 +38,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsServiceImpl.loadUserByUsername(username);
-            boolean adam = jwtUtil.validateTokenWithoutPrefix(token);
-            if (adam) {
+            boolean isValid = jwtUtil.validateTokenWithoutPrefix(token);
+            if (isValid) {
                 // if token is valid configure Spring Security to manually set authentication
                 final UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 // After setting the Authentication in the context, specify that the current user is authenticated
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            } else {
+                throw new InvalidTokenException("Token is expired or invalid");
             }
         }
         filterChain.doFilter(request, response);
