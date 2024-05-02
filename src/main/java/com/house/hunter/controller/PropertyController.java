@@ -5,6 +5,7 @@ import com.house.hunter.model.dto.property.ImageDTO;
 import com.house.hunter.model.dto.property.PropertyDTO;
 import com.house.hunter.service.ImageService;
 import com.house.hunter.service.PropertyService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,51 +40,56 @@ public class PropertyController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
+    @Operation(summary = "Create property")
     public ResponseEntity<PropertyDTO> createProperty(@RequestBody PropertyDTO propertyDto) {
         PropertyDTO createdProperty = propertyService.createProperty(propertyDto);
         return new ResponseEntity<>(createdProperty, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get a specific property by id")
     public ResponseEntity<PropertyDTO> getPropertyById(@PathVariable UUID id) {
         PropertyDTO propertyDto = propertyService.getPropertyById(id);
         return new ResponseEntity<>(propertyDto, HttpStatus.OK);
     }
 
     @GetMapping
+    @Operation(summary = "Get all properties")
     public ResponseEntity<List<PropertyDTO>> getAllProperties() {
         List<PropertyDTO> propertyDtos = propertyService.getAllProperties();
         return new ResponseEntity<>(propertyDtos, HttpStatus.OK);
     }
 
-
-
     @PutMapping("/{id}")
+    @Operation(summary = "Update property")
     public ResponseEntity<PropertyDTO> updateProperty(@PathVariable UUID id, @RequestBody PropertyDTO propertyDto) {
         PropertyDTO updatedProperty = propertyService.updateProperty(id, propertyDto);
         return new ResponseEntity<>(updatedProperty, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete property")
     public ResponseEntity<Void> deleteProperty(@PathVariable UUID id) {
         propertyService.deleteProperty(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/{propertyId}/images")
-
+    @Operation(summary = "Upload image")
     public ResponseEntity<ImageDTO> uploadImage(@PathVariable UUID propertyId, @RequestParam("file") MultipartFile file) throws IOException {
         ImageDTO uploadedImage = imageService.uploadImage(propertyId, file);
         return new ResponseEntity<>(uploadedImage, HttpStatus.CREATED);
     }
 
     @GetMapping("/{propertyId}/images")
+    @Operation(summary = "Get images by property")
     public ResponseEntity<List<ImageDTO>> getImagesByProperty(@PathVariable UUID propertyId) {
         List<ImageDTO> imageDtos = imageService.getImagesByProperty(propertyId);
         return new ResponseEntity<>(imageDtos, HttpStatus.OK);
     }
 
     @DeleteMapping("/{propertyId}/images/{imageId}")
+    @Operation(summary = "Delete image")
     public ResponseEntity<Void> deleteImage(@PathVariable UUID propertyId, @PathVariable UUID imageId) {
         imageService.deleteImage(propertyId, imageId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
