@@ -10,4 +10,10 @@ public class MapperConfig {
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }
+
+    @Bean(name = "objectMapper")
+    public com.fasterxml.jackson.databind.ObjectMapper objectMapper() {
+        return new com.fasterxml.jackson.databind.ObjectMapper();
+    }
+
 }

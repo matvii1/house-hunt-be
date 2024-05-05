@@ -1,9 +1,14 @@
 package com.house.hunter.advice;
 
+import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.InvalidTokenException;
+import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.exception.UserAlreadyExistsException;
+import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.error.ErrorDto;
 import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,8 +16,6 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,8 +45,19 @@ public final class ControllerAdvice {
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(UserNotFoundException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.NOT_FOUND.value(), "User not found! ", List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
     @ExceptionHandler(InvalidTokenException.class)
     public ResponseEntity<ErrorDto> handleValidationException(InvalidTokenException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+    @ExceptionHandler(InvalidUserAuthenticationException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(InvalidUserAuthenticationException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
@@ -63,6 +77,12 @@ public final class ControllerAdvice {
     @ExceptionHandler(InternalAuthenticationServiceException.class)
     public ResponseEntity<ErrorDto> handleValidationException(InternalAuthenticationServiceException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(IllegalRequestException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(IllegalRequestException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 

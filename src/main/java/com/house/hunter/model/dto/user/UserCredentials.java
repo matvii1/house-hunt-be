@@ -6,10 +6,12 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
 @Data
-public class UserLoginDto {
+@AllArgsConstructor
+@NoArgsConstructor
+public class UserCredentials {
     @Email(message = "Email should be valid")
     @NotEmpty(message = "Email is required")
     private String email;

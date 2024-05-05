@@ -69,7 +69,6 @@ public class JWTUtil {
         }
     }
 
-
     private Claims parseClaims(String token) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     }
@@ -91,6 +90,10 @@ public class JWTUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public Instant getExpirationDateFromToken(String token) {
+        return parseClaims(token).getExpiration().toInstant();
     }
 
     private boolean isValidRole(String role) {

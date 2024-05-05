@@ -14,7 +14,7 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserGetResponseDto {
+public class UserGetResponse {
     private String id;
     private String name;
     private String surname;

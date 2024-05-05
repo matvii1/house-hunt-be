@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserLoginResponseDto {
+public class UserLoginResponse {
     private String email;
     private String token;
     private String refreshToken;

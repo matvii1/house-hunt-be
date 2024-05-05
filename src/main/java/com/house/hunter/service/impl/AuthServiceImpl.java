@@ -2,13 +2,14 @@ package com.house.hunter.service.impl;
 
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
-import com.house.hunter.model.dto.user.UserLoginDto;
-import com.house.hunter.model.dto.user.UserLoginResponseDto;
+import com.house.hunter.model.dto.user.UserCredentials;
+import com.house.hunter.model.dto.user.UserLoginResponse;
 import com.house.hunter.model.entity.RefreshToken;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.RefreshTokenRepository;
 import com.house.hunter.repository.UserRepository;
 import com.house.hunter.service.AuthService;
+import com.house.hunter.util.BlacklistedTokenService;
 import com.house.hunter.util.JWTUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,17 +26,18 @@ public class AuthServiceImpl implements AuthService {
     private final JWTUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final BlacklistedTokenService blacklistedTokenService;
 
-    public UserLoginResponseDto login(UserLoginDto loginDto) throws InvalidUserAuthenticationException {
+    public UserLoginResponse login(UserCredentials userCredentials) throws InvalidUserAuthenticationException {
         // Authenticating the user
         final Authentication authentication =
-                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
+                authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userCredentials.getEmail(), userCredentials.getPassword()));
         if (authentication.isAuthenticated()) {
             final String email = authentication.getName();
             final User user = userRepository.findByEmail(email).get();
             final String token = jwtUtil.buildAccessToken(user.getEmail(), user.getRole());
             final RefreshToken refreshToken = createRefreshToken(user);
-            return UserLoginResponseDto.builder().email(loginDto.getEmail()).token(token).refreshToken(refreshToken.getToken()).build();
+            return UserLoginResponse.builder().email(userCredentials.getEmail()).token(token).refreshToken(refreshToken.getToken()).build();
         }
         throw new InvalidUserAuthenticationException();
     }
@@ -65,6 +67,16 @@ public class AuthServiceImpl implements AuthService {
         return refreshTokenRepository.save(refreshToken);
     }
 
+    // AuthServiceImpl.java
+    @Override
+    public void logout(String token) {
+        // Remove the "Bearer " prefix from the token
+        String tokenWithoutPrefix = token.substring(7);
+        // Get the expiration date from the token
+        Instant expiryDate = jwtUtil.getExpirationDateFromToken(tokenWithoutPrefix);
+        // Add the token to the blacklist using the BlacklistedTokenService
+        blacklistedTokenService.addToBlacklist(tokenWithoutPrefix, expiryDate);
+    }
 
     private RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {

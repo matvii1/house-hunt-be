@@ -1,6 +1,5 @@
 package com.house.hunter.config;
 
-import com.house.hunter.constant.UserRole;
 import com.house.hunter.repository.UserRepository;
 import com.house.hunter.security.JwtAuthenticationFilter;
 import com.house.hunter.security.UserDetailsServiceImpl;
@@ -50,10 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/user/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/property/**").permitAll()
-                        // TODO add the revoking token mechanism
-                        // TODO WHEN DELETING THE USER WHY IT RETURNS 500
-                        //TODO change the following line to permitAll() to allow access to the Swagger UI, configure the Swagger UI to use the JWT token
-                        .requestMatchers("/swagger-ui").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                         .anyRequest().permitAll()
                 )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -70,7 +66,6 @@ public class SecurityConfig {
         authenticationProvider.setUserDetailsService(userDetailsService());
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         return authenticationProvider;
-
     }
 
     @Bean
@@ -97,7 +92,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 
     @Bean(name = "secretKeyGenerator")
     public SecretKeyGenerator secretKeyGenerator() {

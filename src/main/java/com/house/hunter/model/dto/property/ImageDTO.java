@@ -11,8 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageDTO {
-    private String id;
     private byte[] data;
-    private String propertyId;
 }
 

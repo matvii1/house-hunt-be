@@ -1,7 +1,7 @@
 package com.house.hunter.controller;
 
-import com.house.hunter.model.dto.user.UserCredentialsDto;
-import com.house.hunter.model.dto.user.UserGetResponseDto;
+import com.house.hunter.model.dto.user.UserCredentials;
+import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,7 +37,7 @@ public class UserController {
     @Operation(summary = "Get user by email")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
-    public ResponseEntity<UserGetResponseDto> getUser(@RequestParam @Valid @Email final String email) {
+    public ResponseEntity<UserGetResponse> getUser(@RequestParam @Valid @Email final String email) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(email));
     }
 
@@ -56,7 +56,7 @@ public class UserController {
     @Operation(summary = "Update password")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
-    public ResponseEntity<Void> updatePassword(@RequestBody @Valid final UserCredentialsDto userCredentialsDto) {
+    public ResponseEntity<Void> updatePassword(@RequestBody @Valid final UserCredentials userCredentialsDto) {
         userService.updatePassword(userCredentialsDto.getPassword(), userCredentialsDto.getEmail());
         return ResponseEntity.ok().build();
     }
