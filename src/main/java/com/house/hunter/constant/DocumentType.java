@@ -8,4 +8,12 @@ public enum DocumentType {
     OTHER;
     public static final String PATTERN = "PASSPORT|ID_CARD|DRIVER_LICENSE|RESIDENCE_PERMIT|OTHER";
 
+    public static boolean contains(String documentType) {
+        for (DocumentType type : DocumentType.values()) {
+            if (type.name().equals(documentType)) {
+                return true;
+            }
+        }
+        return false;
     }
+}

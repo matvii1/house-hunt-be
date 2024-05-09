@@ -1,8 +1,11 @@
 package com.house.hunter.advice;
 
+import com.house.hunter.exception.DocumentAlreadyExistsException;
+import com.house.hunter.exception.FileOperationException;
 import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.ImageAlreadyExistsException;
 import com.house.hunter.exception.ImageNotFoundException;
+import com.house.hunter.exception.InvalidDocumentTypeException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.exception.UserAlreadyExistsException;
@@ -111,8 +114,25 @@ public final class ControllerAdvice {
 
     @ExceptionHandler(ImageAlreadyExistsException.class)
     public ResponseEntity<ErrorDto> handleValidationException(ImageAlreadyExistsException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.CONFLICT.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(DocumentAlreadyExistsException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(DocumentAlreadyExistsException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.CONFLICT.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(InvalidDocumentTypeException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(InvalidDocumentTypeException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
+    @ExceptionHandler(FileOperationException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(FileOperationException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
 }

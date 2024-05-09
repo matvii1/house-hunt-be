@@ -24,4 +24,7 @@ VALUES
     ('f3b32b44-8ea6-4b45-be61-747e8bc321db', '123e4567-e89b-12d3-a456-426614174100', '5566a85b-4fae-4e3c-bf4d-9099bedb4b96_images.jpeg'),
     ('42dee11c-83d5-4d98-a932-9aaa05c1a9d0', '123e4567-e89b-12d3-a456-426614174100', '03b6657e-64fc-4489-b4ed-0cd8f8102009_pexels-binyaminmellish-186077.jpg');
 
+-- Insert document
+INSERT INTO document (id, user_id, document_type, file_name)
+VALUES ('1f1ce31c-83ab-463b-80c9-125509b95028', '123e4567-e89b-12d3-a456-426614174002', 'ID_CARD', '0802cbdb-a437-4c81-a950-1cc4e6f07a3f_password.pdf');
 

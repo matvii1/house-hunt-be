@@ -32,7 +32,7 @@ public class Image {
 
     @Column(name = "file_name")
     @NotEmpty(message = "File name is required")
-    private String fileName;
+    private String filename;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id", nullable = false)

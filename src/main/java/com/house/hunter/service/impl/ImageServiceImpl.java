@@ -35,7 +35,6 @@ public class ImageServiceImpl implements ImageService {
     @Value("${image.directory}")
     private String imageDirectory;
 
-
     private final ImageUtil imageUtil = ImageUtil.getInstance();
 
     @Transactional
@@ -56,7 +55,7 @@ public class ImageServiceImpl implements ImageService {
         return images.stream()
                 .map(image -> {
                     try {
-                        return imageUtil.getImage(imageDirectory, image.getFileName());
+                        return imageUtil.getImage(imageDirectory, image.getFilename());
                     } catch (IOException e) {
                         throw new FileOperationException(e.getMessage());
                     }
@@ -70,7 +69,7 @@ public class ImageServiceImpl implements ImageService {
     public void deleteImage(UUID imageId, UUID propertyId) {
         Image image = imageRepository.findImageByIdAndPropertyId(imageId, propertyId).orElseThrow(ImageNotFoundException::new);
         try {
-            imageUtil.deleteImage(imageDirectory, image.getFileName());
+            imageUtil.deleteImage(imageDirectory, image.getFilename());
         } catch (IOException e) {
             throw new FileOperationException(e.getMessage());
         }
@@ -83,7 +82,7 @@ public class ImageServiceImpl implements ImageService {
         imageRepository.deleteAll(images);
         try {
             for (Image image : images) {
-                imageUtil.deleteImage(imageDirectory, image.getFileName());
+                imageUtil.deleteImage(imageDirectory, image.getFilename());
             }
         } catch (IOException e) {
             throw new FileOperationException(e.getMessage());

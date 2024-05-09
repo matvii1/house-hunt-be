@@ -83,6 +83,7 @@ public class PropertyController {
     @PostMapping(path = "/{propertyId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Upload images of a property")
+    // TODO implement according to getting the user from token
     public List<UUID> uploadImages(@PathVariable UUID propertyId,
                                    @ArraySchema(
                                            schema = @Schema(type = "string", format = "binary"),
@@ -95,12 +96,14 @@ public class PropertyController {
     @GetMapping("/{propertyId}/images")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get images of a property")
+    // TODO implement according to getting the user from token
     public ResponseEntity<List<byte[]>> getImagesByProperty(@PathVariable UUID propertyId) throws IOException {
         return ResponseEntity.ok(imageService.getImages(propertyId));
     }
 
     @DeleteMapping("/{propertyId}/images/{imageId}")
     @Operation(summary = "Delete image of a property")
+    // TODO implement according to getting the user from token
     public ResponseEntity<Void> deleteImage(@PathVariable UUID imageId, @PathVariable UUID propertyId) throws IOException {
         imageService.deleteImage(imageId, propertyId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -108,6 +111,7 @@ public class PropertyController {
 
     @DeleteMapping("/{propertyId}/images")
     @Operation(summary = "Delete all images of a property")
+    // TODO implement according to getting the user from token
     public ResponseEntity<Void> deleteImages(@PathVariable UUID propertyId) throws IOException {
         imageService.deleteImages(propertyId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

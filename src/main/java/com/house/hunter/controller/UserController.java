@@ -5,11 +5,19 @@ import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -21,8 +29,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
 
 
 @RestController
@@ -66,8 +78,46 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     //TODO: Add a check to see if the user is an admin or the user being deleted is the same as the one making the request
-    public ResponseEntity<Void> deleteUser(@Valid @PathVariable final String email) {
+    public ResponseEntity<Void> deleteUser(@Valid @PathVariable @NotEmpty final String email) {
         userService.deleteUser(email);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/documents/{email}")
+    @Operation(summary = "Get user documents")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> getDocuments(@Valid @PathVariable @NotEmpty final String email) {
+        return new ResponseEntity<>(userService.getUserDocuments(email), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/documents/download/{documentName}", produces = MediaType.APPLICATION_PDF_VALUE)
+    @Operation(summary = "Download document")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Resource> downloadDocument(@PathVariable(value = "documentName") @NotEmpty String documentName) {
+        Resource file = userService.downloadFile(documentName);
+        if (file == null) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
+                    .body(file);
+        }
+    }
+
+
+    @PostMapping(path = "/documents/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload document")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UUID uploadFile(@RequestParam @NotEmpty String documentType,
+                           @Parameter(
+                                   description = "Document file",
+                                   required = true,
+                                   content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                           )
+                           @RequestPart("file") MultipartFile file) {
+        return userService.uploadDocument(documentType, file);
+    }
+
+
 }

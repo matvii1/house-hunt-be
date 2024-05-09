@@ -17,7 +17,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.validator.constraints.URL;
 
 import java.util.UUID;
 
@@ -33,17 +32,16 @@ public class Document {
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     private UUID id;
 
-    @NotEmpty(message = "Document URL is required")
-    @URL(message = "Invalid URL")
-    @Column(name = "url")
-    // url for storing the document in a cloud storage
-    private String url;
+    @Column(name = "file_name")
+    @NotEmpty(message = "File name is required")
+    private String filename;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "document_type")
+    @Enumerated(EnumType.STRING)
     private DocumentType documentType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
 }
