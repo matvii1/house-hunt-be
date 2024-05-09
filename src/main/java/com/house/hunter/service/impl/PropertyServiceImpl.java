@@ -1,14 +1,18 @@
-
-
 package com.house.hunter.service.impl;
 
+import com.house.hunter.exception.IllegalAccessRequestException;
+import com.house.hunter.exception.PropertyAlreadyExistsException;
+import com.house.hunter.exception.PropertyNotFoundException;
 import com.house.hunter.exception.UserNotFoundException;
-import com.house.hunter.model.dto.property.PropertyDTO;
+import com.house.hunter.model.dto.property.CreatePropertyDTO;
+import com.house.hunter.model.dto.property.GetPropertyDTO;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
+import com.house.hunter.model.dto.property.UpdatePropertyDTO;
 import com.house.hunter.model.entity.Property;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.PropertyRepository;
 import com.house.hunter.repository.UserRepository;
+import com.house.hunter.security.CustomUserDetails;
 import com.house.hunter.service.PropertyService;
 import com.house.hunter.util.PropertySpecifications;
 import jakarta.transaction.Transactional;
@@ -16,10 +20,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PropertyServiceImpl implements PropertyService {
@@ -37,22 +44,29 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     @Transactional
-    public void createProperty(PropertyDTO propertyDto) {
-        Property property = modelMapper.map(propertyDto, Property.class);
-        User owner = userRepository.findByEmail(propertyDto.getOwnerEmail())
-                .orElseThrow(() -> new UserNotFoundException(propertyDto.getOwnerEmail()));
+    public UUID createProperty(CreatePropertyDTO propertyCreateDto) {
+        if (!isAdmin() && !propertyCreateDto.getOwnerEmail().equals(getAuthenticatedUserEmail())) {
+            throw new IllegalAccessRequestException();
+        }
 
-        property.setOwner(owner);
-        propertyRepository.save(property);
+        // Check if a property with the same title already exists
+        if (propertyRepository.existsByTitle(propertyCreateDto.getTitle())) {
+            throw new PropertyAlreadyExistsException();
+        }
+
+        Property property = Optional.of(propertyCreateDto)
+                .map(dto -> modelMapper.map(dto, Property.class))
+                .map(prop -> {
+                    User owner = userRepository.findByEmail(propertyCreateDto.getOwnerEmail())
+                            .orElseThrow(() -> new UserNotFoundException(propertyCreateDto.getOwnerEmail()));
+                    prop.setOwner(owner);
+                    return prop;
+                })
+                .orElseThrow(IllegalStateException::new);
+
+        return propertyRepository.save(property).getId();
     }
 
-    @Override
-    public List<PropertyDTO> getAllProperties() {
-        List<Property> properties = propertyRepository.findAll();
-        return properties.stream()
-                .map(property -> modelMapper.map(property, PropertyDTO.class))
-                .toList();
-    }
 
     @Override
     public Page<Property> searchProperties(PropertySearchCriteriaDTO searchCriteria, Pageable pageable) {
@@ -61,25 +75,50 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     @Transactional
-    public PropertyDTO updateProperty(UUID id, PropertyDTO propertyDto) {
-        Property existingProperty = propertyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Property not found with id: " + id));
-        modelMapper.map(propertyDto, existingProperty);
-        Property updatedProperty = propertyRepository.save(existingProperty);
-        return modelMapper.map(updatedProperty, PropertyDTO.class);
+    public CreatePropertyDTO updateProperty(UUID id, UpdatePropertyDTO updatePropertyDTO) {
+        Property property;
+        if (isAdmin()) {
+            property = propertyRepository.findById(id).orElseThrow(PropertyNotFoundException::new);
+        } else {
+            property = propertyRepository.findByOwnerEmailAndId(getAuthenticatedUserEmail(), id)
+                    .orElseThrow(PropertyNotFoundException::new);
+        }
+        modelMapper.map(updatePropertyDTO, property);
+        return modelMapper.map(property, CreatePropertyDTO.class);
     }
+
     @Override
-    public List<PropertyDTO> getPropertiesByOwnerEmail(String email) {
-        List<Property> properties = propertyRepository.findByOwnerEmail(email);
-        return properties.stream()
-                .map(property -> modelMapper.map(property, PropertyDTO.class))
-                .toList();
+    public List<GetPropertyDTO> getProperties(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+
+        return user.getProperties().stream()
+                .map(property -> modelMapper.map(property, GetPropertyDTO.class))
+                .collect(Collectors.toList());
     }
+
 
     @Override
     @Transactional
     public void deleteProperty(UUID id) {
-        propertyRepository.deleteById(id);
+        if (isAdmin()) {
+            propertyRepository.deleteById(id);
+        } else {
+            propertyRepository.deleteByOwnerEmailAndId(getAuthenticatedUserEmail(), id).orElseThrow(IllegalAccessRequestException::new);
+        }
+    }
+
+    private String getAuthenticatedUserEmail() {
+        try {
+            CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return userDetails.getUsername();
+        } catch (Exception e) {
+            throw new IllegalAccessRequestException();
+        }
+    }
+
+    private boolean isAdmin() {
+        List userDetails = (List) SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+        return userDetails.get(0).toString().equals("ROLE_ADMIN");
     }
 }
-

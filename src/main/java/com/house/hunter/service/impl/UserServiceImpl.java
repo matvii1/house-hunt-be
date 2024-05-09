@@ -2,6 +2,7 @@ package com.house.hunter.service.impl;
 
 import com.house.hunter.constant.DocumentType;
 import com.house.hunter.constant.UserRole;
+import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
 import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.InvalidDocumentTypeException;
@@ -126,6 +127,9 @@ public class UserServiceImpl implements UserService {
     }
 
     public Resource downloadFile(String filename) {
+        User user = getAuthenticatedUser();
+        // if the user does not have requested document, throw exception
+        documentRepository.findDocumentsByUserEmail(user.getEmail()).orElseThrow(DocumentNotFoundException::new);
         return documentUtil.getDocument(documentDirectory, filename);
 
     }
@@ -135,8 +139,7 @@ public class UserServiceImpl implements UserService {
         if (!DocumentType.contains(documentType)) {
             throw new InvalidDocumentTypeException();
         }
-        User user = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())
-                .orElseThrow(() -> new UserNotFoundException(SecurityContextHolder.getContext().getAuthentication().getName()));
+        User user = getAuthenticatedUser();
         try {
             String documentName = documentUtil.saveDocumentToStorage(documentDirectory, file);
             Document document = new Document(null, documentName, DocumentType.valueOf(documentType), user);
@@ -144,6 +147,23 @@ public class UserServiceImpl implements UserService {
         } catch (IOException e) {
             throw new FileOperationException(e.getMessage());
         }
+    }
+
+    @Transactional
+    public void deleteDocument(String documentName) {
+        try {
+            Document document = documentRepository.findByFilename(documentName)
+                    .orElseThrow(DocumentNotFoundException::new);
+            documentRepository.delete(document);
+            documentUtil.deleteDocument(documentDirectory, documentName);
+        } catch (IOException e) {
+            throw new FileOperationException(e.getMessage());
+        }
+    }
+
+    private User getAuthenticatedUser() {
+        return userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())
+                .orElseThrow(() -> new UserNotFoundException("User can not be gotten from the authorization token " + SecurityContextHolder.getContext().getAuthentication().getName()));
     }
 
     private boolean hasRole(Authentication authentication, UserRole role) {

@@ -1,16 +1,19 @@
 package com.house.hunter.service.impl;
 
 import com.house.hunter.exception.FileOperationException;
+import com.house.hunter.exception.IllegalAccessRequestException;
 import com.house.hunter.exception.ImageNotFoundException;
 import com.house.hunter.model.entity.Image;
 import com.house.hunter.model.entity.Property;
 import com.house.hunter.repository.ImageRepository;
 import com.house.hunter.repository.PropertyRepository;
+import com.house.hunter.security.CustomUserDetails;
 import com.house.hunter.service.ImageService;
 import com.house.hunter.util.ImageUtil;
 import jakarta.el.PropertyNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,26 +70,60 @@ public class ImageServiceImpl implements ImageService {
 
     @Transactional
     public void deleteImage(UUID imageId, UUID propertyId) {
-        Image image = imageRepository.findImageByIdAndPropertyId(imageId, propertyId).orElseThrow(ImageNotFoundException::new);
+        if (isAdmin()) {
+            imageRepository.deleteById(imageId);
+            return;
+        }
+
+        Image image = imageRepository.findById(imageId)
+                .orElseThrow(() -> new ImageNotFoundException("Image not found with id: " + imageId));
+
+        Property property = image.getProperty();
+
+        if (!property.getId().equals(propertyId) || !property.getOwner().getEmail().equals(getAuthenticatedUserEmail())) {
+            throw new IllegalAccessRequestException();
+        }
+
+        imageRepository.delete(image);
+
         try {
             imageUtil.deleteImage(imageDirectory, image.getFilename());
         } catch (IOException e) {
             throw new FileOperationException(e.getMessage());
         }
-        imageRepository.deleteByIdAndPropertyId(imageId, propertyId);
     }
+
 
     @Transactional
     public void deleteImages(UUID propertyId) {
-        List<Image> images = imageRepository.findImagesByPropertyId(propertyId).orElseThrow(PropertyNotFoundException::new);
-        imageRepository.deleteAll(images);
-        try {
-            for (Image image : images) {
+        Property property = propertyRepository.findById(propertyId).orElseThrow(PropertyNotFoundException::new);
+
+        if (!isAdmin() && !property.getOwner().getEmail().equals(getAuthenticatedUserEmail())) {
+            throw new IllegalAccessRequestException();
+        }
+
+        property.getImages().forEach(image -> {
+            try {
                 imageUtil.deleteImage(imageDirectory, image.getFilename());
+            } catch (IOException e) {
+                throw new FileOperationException(e.getMessage());
             }
-        } catch (IOException e) {
-            throw new FileOperationException(e.getMessage());
+        });
+
+        property.getImages().clear();
+    }
+
+    private String getAuthenticatedUserEmail() {
+        try {
+            CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            return userDetails.getUsername();
+        } catch (Exception e) {
+            throw new IllegalAccessRequestException();
         }
     }
 
+    private boolean isAdmin() {
+        List userDetails = (List) SecurityContextHolder.getContext().getAuthentication().getAuthorities();
+        return userDetails.get(0).toString().equals("ROLE_ADMIN");
+    }
 }

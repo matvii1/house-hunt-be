@@ -25,5 +25,7 @@ public interface UserService {
 
     UUID uploadDocument(String documentType, MultipartFile file);
 
+    void deleteDocument(String documentName);
+
 }
 

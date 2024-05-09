@@ -1,13 +1,16 @@
 package com.house.hunter.advice;
 
 import com.house.hunter.exception.DocumentAlreadyExistsException;
+import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
+import com.house.hunter.exception.IllegalAccessRequestException;
 import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.ImageAlreadyExistsException;
 import com.house.hunter.exception.ImageNotFoundException;
 import com.house.hunter.exception.InvalidDocumentTypeException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
+import com.house.hunter.exception.PropertyAlreadyExistsException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.error.ErrorDto;
@@ -15,6 +18,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.el.PropertyNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -124,6 +128,12 @@ public final class ControllerAdvice {
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(DocumentNotFoundException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.NOT_FOUND.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
     @ExceptionHandler(InvalidDocumentTypeException.class)
     public ResponseEntity<ErrorDto> handleValidationException(InvalidDocumentTypeException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
@@ -135,4 +145,29 @@ public final class ControllerAdvice {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
+
+    @ExceptionHandler(IllegalAccessRequestException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(IllegalAccessRequestException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.FORBIDDEN.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(PropertyAlreadyExistsException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(PropertyAlreadyExistsException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.CONFLICT.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(DataIntegrityViolationException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(IllegalArgumentException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
 }

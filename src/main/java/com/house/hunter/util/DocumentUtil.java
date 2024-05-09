@@ -1,5 +1,6 @@
 package com.house.hunter.util;
 
+import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
 import com.house.hunter.exception.ImageNotFoundException;
 import org.springframework.core.io.Resource;
@@ -29,7 +30,7 @@ public class DocumentUtil {
     }
 
     public Resource getDocument(String documentDirectory, String documentName) {
-        File dir = new File(documentDirectory +"/" + documentName);
+        File dir = new File(documentDirectory + "/" + documentName);
         try {
             if (dir.exists()) {
                 Resource resource = new UrlResource(dir.toURI());
@@ -68,6 +69,15 @@ public class DocumentUtil {
         Files.copy(document.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
         return uniqueFileName;
+    }
+
+    public void deleteDocument(String documentDirectory, String filename) throws IOException {
+        Path documentPath = Path.of(documentDirectory, filename);
+        if (Files.exists(documentPath)) {
+            Files.delete(documentPath);
+        } else {
+            throw new DocumentNotFoundException("Document not found");
+        }
     }
 
     private boolean isDocumentDuplicate(String uploadDirectory, MultipartFile document) throws IOException {

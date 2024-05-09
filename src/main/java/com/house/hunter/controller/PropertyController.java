@@ -1,8 +1,10 @@
 package com.house.hunter.controller;
 
 
-import com.house.hunter.model.dto.property.PropertyDTO;
+import com.house.hunter.model.dto.property.CreatePropertyDTO;
+import com.house.hunter.model.dto.property.GetPropertyDTO;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
+import com.house.hunter.model.dto.property.UpdatePropertyDTO;
 import com.house.hunter.model.entity.Property;
 import com.house.hunter.service.ImageService;
 import com.house.hunter.service.PropertyService;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +35,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/properties")
+@RequestMapping("/api/v1/properties")
 public class PropertyController {
 
     private final PropertyService propertyService;
@@ -45,14 +48,15 @@ public class PropertyController {
     }
 
     @PostMapping
-    /*    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")*/
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     @Operation(summary = "Create property")
-    public ResponseEntity<Void> createProperty(@RequestBody PropertyDTO propertyDto) {
-        propertyService.createProperty(propertyDto);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<UUID> createProperty(@RequestBody CreatePropertyDTO propertyCreateDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(propertyService.createProperty(propertyCreateDto));
     }
 
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Search properties")
     public Page<Property> searchProperties(PropertySearchCriteriaDTO criteria, Pageable pageable) {
         return propertyService.searchProperties(criteria, pageable);
     }
@@ -60,30 +64,34 @@ public class PropertyController {
     @GetMapping("/{email}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get properties by owner email")
-    public List<PropertyDTO> getPropertiesByOwnerEmail(@PathVariable String email) {
-        return propertyService.getPropertiesByOwnerEmail(email);
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
+    public List<GetPropertyDTO> getProperties(@PathVariable String email) {
+        return propertyService.getProperties(email);
 
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update property")
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<PropertyDTO> updateProperty(@PathVariable UUID id, @RequestBody PropertyDTO propertyDto) {
-        PropertyDTO updatedProperty = propertyService.updateProperty(id, propertyDto);
+    public ResponseEntity<CreatePropertyDTO> updateProperty(@PathVariable UUID id, @RequestBody UpdatePropertyDTO updatePropertyDTO) {
+        CreatePropertyDTO updatedProperty = propertyService.updateProperty(id, updatePropertyDTO);
         return ResponseEntity.ok(updatedProperty);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary = "Delete property")
-    public void deleteProperty(@PathVariable UUID id) {
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
+    public ResponseEntity<Void> deleteProperty(@PathVariable UUID id) {
         propertyService.deleteProperty(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping(path = "/{propertyId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     @Operation(summary = "Upload images of a property")
-    // TODO implement according to getting the user from token
     public List<UUID> uploadImages(@PathVariable UUID propertyId,
                                    @ArraySchema(
                                            schema = @Schema(type = "string", format = "binary"),
@@ -96,14 +104,13 @@ public class PropertyController {
     @GetMapping("/{propertyId}/images")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get images of a property")
-    // TODO implement according to getting the user from token
     public ResponseEntity<List<byte[]>> getImagesByProperty(@PathVariable UUID propertyId) throws IOException {
         return ResponseEntity.ok(imageService.getImages(propertyId));
     }
 
     @DeleteMapping("/{propertyId}/images/{imageId}")
     @Operation(summary = "Delete image of a property")
-    // TODO implement according to getting the user from token
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     public ResponseEntity<Void> deleteImage(@PathVariable UUID imageId, @PathVariable UUID propertyId) throws IOException {
         imageService.deleteImage(imageId, propertyId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -111,7 +118,7 @@ public class PropertyController {
 
     @DeleteMapping("/{propertyId}/images")
     @Operation(summary = "Delete all images of a property")
-    // TODO implement according to getting the user from token
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     public ResponseEntity<Void> deleteImages(@PathVariable UUID propertyId) throws IOException {
         imageService.deleteImages(propertyId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

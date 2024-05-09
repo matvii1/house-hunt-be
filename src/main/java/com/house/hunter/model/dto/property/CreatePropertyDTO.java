@@ -23,7 +23,7 @@
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
-    public class PropertyDTO {
+    public class CreatePropertyDTO {
 
         @NotEmpty(message = "Title is required")
         private String title;
@@ -70,6 +70,5 @@
 
         @Email(message = "Owner Email should be a valid email")
         private String ownerEmail;
-
     }
 

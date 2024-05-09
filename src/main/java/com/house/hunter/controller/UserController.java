@@ -7,12 +7,10 @@ import com.house.hunter.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -77,7 +75,6 @@ public class UserController {
     @Operation(summary = "Delete user")
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    //TODO: Add a check to see if the user is an admin or the user being deleted is the same as the one making the request
     public ResponseEntity<Void> deleteUser(@Valid @PathVariable @NotEmpty final String email) {
         userService.deleteUser(email);
         return ResponseEntity.noContent().build();
@@ -86,6 +83,7 @@ public class UserController {
     @GetMapping("/documents/{email}")
     @Operation(summary = "Get user documents")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
     public ResponseEntity<?> getDocuments(@Valid @PathVariable @NotEmpty final String email) {
         return new ResponseEntity<>(userService.getUserDocuments(email), HttpStatus.OK);
     }
@@ -93,6 +91,7 @@ public class UserController {
     @GetMapping(value = "/documents/download/{documentName}", produces = MediaType.APPLICATION_PDF_VALUE)
     @Operation(summary = "Download document")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<Resource> downloadDocument(@PathVariable(value = "documentName") @NotEmpty String documentName) {
         Resource file = userService.downloadFile(documentName);
         if (file == null) {
@@ -104,7 +103,6 @@ public class UserController {
                     .body(file);
         }
     }
-
 
     @PostMapping(path = "/documents/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload document")
@@ -119,5 +117,13 @@ public class UserController {
         return userService.uploadDocument(documentType, file);
     }
 
+    @DeleteMapping("/documents/{documentName}")
+    @Operation(summary = "Delete document")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<Void> deleteDocument(@PathVariable(value = "documentName") @NotEmpty String documentName) {
+        userService.deleteDocument(documentName);
+        return ResponseEntity.noContent().build();
+    }
 
 }

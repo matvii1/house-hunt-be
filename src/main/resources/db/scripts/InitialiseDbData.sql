@@ -14,8 +14,8 @@ VALUES
 -- Insert properties
 INSERT INTO properties (id, title, address, price, square_meters, description, is_furnished, number_of_rooms, floor_number, available_from, ad_type, apartment_type, owner_id)
 VALUES
-    ('123e4567-e89b-12d3-a456-426614174100', 'Cozy Apartment', '123 Main St', 1000.00, 80, 'A nice cozy apartment.', 'FURNISHED', 3, 2, '2023-06-01', 'RENTAL', 'ONE_KK', (SELECT id FROM app_user WHERE email = 'tenant@tenant.com')),
-    ('123e4567-e89b-12d3-a456-426614174101', 'Spacious House', '456 Elm St', 2500.00, 200, 'A spacious house perfect for families.', 'UNFURNISHED', 5, 0, '2023-07-01', 'SALE', 'TWO_KK', (SELECT id FROM app_user WHERE email = 'tenant@tenant.com'));
+    ('123e4567-e89b-12d3-a456-426614174100', 'Cozy Apartment', '123 Main St', 1000.00, 80, 'A nice cozy apartment.', 'FURNISHED', 3, 2, '2023-06-01', 'RENTAL', 'ONE_KK', (SELECT id FROM app_user WHERE email = 'landlord@landlord.com')),
+    ('123e4567-e89b-12d3-a456-426614174101', 'Spacious House', '456 Elm St', 2500.00, 200, 'A spacious house perfect for families.', 'UNFURNISHED', 5, 0, '2023-07-01', 'SALE', 'TWO_KK', (SELECT id FROM app_user WHERE email = 'landlord@landlord.com'));
 
 -- Insert images
 INSERT INTO images (id, property_id, file_name)
