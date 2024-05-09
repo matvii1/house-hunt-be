@@ -1,28 +1,28 @@
 package com.house.hunter.constant;
 
 public enum ApartmentType {
-    ONE_KK("1+kk"),
-    ONE_ONE("1+1"),
-    TWO_KK("2+kk"),
-    TWO_ONE("2+1"),
-    THREE_KK("3+kk"),
-    THREE_ONE("3+1"),
-    FOUR_KK("4+kk"),
-    FOUR_ONE("4+1"),
-    FIVE_KK("5+kk"),
-    FIVE_ONE("5+1"),
-    SIX_KK("6+kk"),
-    SIX_ONE("6+1"),
-    SEVEN_KK("7+kk"),
-    SEVEN_ONE("7+1");
+    ONE_KK,
+    ONE_ONE,
+    TWO_KK,
+    TWO_ONE,
+    THREE_KK,
+    THREE_ONE,
+    FOUR_KK,
+    FOUR_ONE,
+    FIVE_KK,
+    FIVE_ONE,
+    SIX_KK,
+    SIX_ONE,
+    SEVEN_KK,
+    SEVEN_ONE;
 
-    private final String value;
-
-    ApartmentType(String value) {
-        this.value = value;
+    // Constant regex pattern
+    @Override
+    public String toString() {
+        return name().toLowerCase().replace('_', '+');
     }
 
-    public String getValue() {
-        return value;
-    }
+    // Constant regex pattern
+    public static final String PATTERN = "ONE_KK|ONE_ONE|TWO_KK|TWO_ONE|THREE_KK|THREE_ONE|FOUR_KK|FOUR_ONE|FIVE_KK|FIVE_ONE|SIX_KK|SIX_ONE|SEVEN_KK|SEVEN_ONE";
+
 }

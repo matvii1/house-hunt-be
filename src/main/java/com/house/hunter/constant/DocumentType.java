@@ -5,5 +5,7 @@ public enum DocumentType {
     ID_CARD,
     DRIVER_LICENSE,
     RESIDENCE_PERMIT,
-    OTHER
-}
+    OTHER;
+    public static final String PATTERN = "PASSPORT|ID_CARD|DRIVER_LICENSE|RESIDENCE_PERMIT|OTHER";
+
+    }

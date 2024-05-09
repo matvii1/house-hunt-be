@@ -3,5 +3,7 @@ package com.house.hunter.constant;
 public enum UserStatus {
     ACTIVE,
     PASSIVE,
-    BLOCKED
-}
+    BLOCKED;
+    // Constant regex pattern
+    public static final String PATTERN = "ACTIVE|PASSIVE|BLOCKED";
+    }

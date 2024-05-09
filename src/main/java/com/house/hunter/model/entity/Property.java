@@ -2,6 +2,7 @@ package com.house.hunter.model.entity;
 
 import com.house.hunter.constant.AdType;
 import com.house.hunter.constant.ApartmentType;
+import com.house.hunter.constant.IsFurnished;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,7 +12,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -29,8 +29,6 @@ import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -64,11 +62,8 @@ public class Property {
     @Size(min = 20, message = "Description must be at least 10 characters long")
     private String description;
 
-    @NotEmpty(message = "Type is required")
-    private String type;
-
-    @NotNull(message = "Furnished info can not be empty")
-    private boolean isFurnished;
+    @Enumerated(EnumType.STRING)
+    private IsFurnished isFurnished;
 
     @NotNull(message = "Number of rooms is required")
     private int numberOfRooms;
@@ -94,8 +89,5 @@ public class Property {
     @JoinColumn(name = "owner_id", nullable = false)
     @NotNull
     private User owner;
-
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Image> images = new HashSet<>();
 
 }

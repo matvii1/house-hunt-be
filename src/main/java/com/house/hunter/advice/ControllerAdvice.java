@@ -1,16 +1,20 @@
 package com.house.hunter.advice;
 
 import com.house.hunter.exception.IllegalRequestException;
+import com.house.hunter.exception.ImageAlreadyExistsException;
+import com.house.hunter.exception.ImageNotFoundException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.error.ErrorDto;
 import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.el.PropertyNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -56,6 +60,7 @@ public final class ControllerAdvice {
         final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
+
     @ExceptionHandler(InvalidUserAuthenticationException.class)
     public ResponseEntity<ErrorDto> handleValidationException(InvalidUserAuthenticationException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), List.of(ex.getMessage()));
@@ -86,5 +91,28 @@ public final class ControllerAdvice {
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
+    @ExceptionHandler(PropertyNotFoundException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(PropertyNotFoundException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.NOT_FOUND.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(ImageNotFoundException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(ImageNotFoundException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.NOT_FOUND.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(HttpMessageNotReadableException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(ImageAlreadyExistsException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(ImageAlreadyExistsException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
 
 }

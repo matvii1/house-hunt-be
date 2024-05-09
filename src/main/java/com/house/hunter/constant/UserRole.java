@@ -6,7 +6,6 @@ public enum UserRole {
     TENANT,
     GUEST;
 
-    public String getRole() {
-        return this.name();
-    }
+    // Constant regex pattern
+    public static final String PATTERN = "ADMIN|LANDLORD|TENANT|GUEST";
 }

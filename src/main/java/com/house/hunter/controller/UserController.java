@@ -64,10 +64,10 @@ public class UserController {
     @DeleteMapping("/{email}")
     @Operation(summary = "Delete user")
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     //TODO: Add a check to see if the user is an admin or the user being deleted is the same as the one making the request
     public ResponseEntity<Void> deleteUser(@Valid @PathVariable final String email) {
         userService.deleteUser(email);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }
