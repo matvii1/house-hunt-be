@@ -3,6 +3,7 @@ package com.house.hunter.model.entity;
 import com.house.hunter.constant.UserRole;
 import com.house.hunter.constant.UserStatus;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -45,10 +46,12 @@ public class User {
 
     @Email(message = "Email should be valid")
     @NotEmpty(message = "Email is required")
+    @Column(unique = true)
     private String email;
 
     @Pattern(regexp = "^\\+(?:[0-9] ?){6,14}[0-9]$", message = "Invalid phone number format")
     @NotEmpty(message = "Phone number is required")
+    @Column(unique = true)
     private String phoneNumber;
 
     // Store hashed password, not the blob directly. Ensure security by using a strong hash function.

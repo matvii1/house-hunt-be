@@ -2,7 +2,6 @@
 
 package com.house.hunter.service.impl;
 
-import com.house.hunter.constant.ApartmentType;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.property.PropertyDTO;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,13 +47,6 @@ public class PropertyServiceImpl implements PropertyService {
     }
 
     @Override
-    public PropertyDTO getPropertyById(UUID id) {
-        Property property = propertyRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Property not found with id: " + id));
-        return modelMapper.map(property, PropertyDTO.class);
-    }
-
-    @Override
     public List<PropertyDTO> getAllProperties() {
         List<Property> properties = propertyRepository.findAll();
         return properties.stream()
@@ -76,6 +67,13 @@ public class PropertyServiceImpl implements PropertyService {
         modelMapper.map(propertyDto, existingProperty);
         Property updatedProperty = propertyRepository.save(existingProperty);
         return modelMapper.map(updatedProperty, PropertyDTO.class);
+    }
+    @Override
+    public List<PropertyDTO> getPropertiesByOwnerEmail(String email) {
+        List<Property> properties = propertyRepository.findByOwnerEmail(email);
+        return properties.stream()
+                .map(property -> modelMapper.map(property, PropertyDTO.class))
+                .toList();
     }
 
     @Override

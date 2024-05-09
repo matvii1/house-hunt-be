@@ -12,7 +12,6 @@ import java.util.UUID;
 public interface PropertyService {
     void createProperty(PropertyDTO propertyDto);
 
-    PropertyDTO getPropertyById(UUID id);
 
     List<PropertyDTO> getAllProperties();
 
@@ -21,5 +20,7 @@ public interface PropertyService {
     void deleteProperty(UUID id);
 
     Page<Property> searchProperties(PropertySearchCriteriaDTO searchCriteria, Pageable pageable);
+
+    List<PropertyDTO> getPropertiesByOwnerEmail(String email);
 }
 

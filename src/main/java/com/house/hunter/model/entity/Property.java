@@ -4,6 +4,7 @@ import com.house.hunter.constant.AdType;
 import com.house.hunter.constant.ApartmentType;
 import com.house.hunter.constant.IsFurnished;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -45,9 +46,11 @@ public class Property {
     private UUID id;
 
     @NotEmpty(message = "Title is required")
+    @Column(unique = true)
     private String title;
 
     @NotEmpty(message = "Address is required")
+    @Column(unique = true)
     private String address;
 
     @DecimalMin(value = "0", message = "Price must be a positive number")

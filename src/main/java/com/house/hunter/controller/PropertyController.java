@@ -57,12 +57,12 @@ public class PropertyController {
         return propertyService.searchProperties(criteria, pageable);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{email}")
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Get a specific property by id")
-    public ResponseEntity<PropertyDTO> getPropertyById(@PathVariable UUID id) {
-        PropertyDTO propertyDto = propertyService.getPropertyById(id);
-        return ResponseEntity.ok(propertyDto);
+    @Operation(summary = "Get properties by owner email")
+    public List<PropertyDTO> getPropertiesByOwnerEmail(@PathVariable String email) {
+        return propertyService.getPropertiesByOwnerEmail(email);
+
     }
 
     @PutMapping("/{id}")
