@@ -1,5 +1,6 @@
 package com.house.hunter.service.impl;
 
+import com.house.hunter.exception.InvalidAccountStatusException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.model.dto.user.UserCredentials;
@@ -34,7 +35,12 @@ public class AuthServiceImpl implements AuthService {
                 authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userCredentials.getEmail(), userCredentials.getPassword()));
         if (authentication.isAuthenticated()) {
             final String email = authentication.getName();
+            // assumed that user is present in the database as the authentication is successful
             final User user = userRepository.findByEmail(email).get();
+            // check the user account status for successful login
+            if (!user.getAccountStatus().equals("ACTIVE")) {
+                throw new InvalidAccountStatusException();
+            }
             final String token = jwtUtil.buildAccessToken(user.getEmail(), user.getRole());
             final RefreshToken refreshToken = createRefreshToken(user);
             return UserLoginResponse.builder().email(userCredentials.getEmail()).token(token).refreshToken(refreshToken.getToken()).build();
@@ -78,12 +84,11 @@ public class AuthServiceImpl implements AuthService {
         blacklistedTokenService.addToBlacklist(tokenWithoutPrefix, expiryDate);
     }
 
-    private RefreshToken verifyExpiration(RefreshToken token) {
+    private void verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
             throw new InvalidTokenException(" Refresh token is expired. Please make a new login..!");
         }
-        return token;
     }
 
 }

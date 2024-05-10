@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UserRegistrationDto {
+public class CreateAdminDTO {
     @NotEmpty(message = "Name is required")
     private String name;
 
@@ -17,14 +17,6 @@ public class UserRegistrationDto {
     @Email(message = "Email should be valid")
     @NotEmpty(message = "Email is required")
     private String email;
-
-    @Pattern(regexp = "^\\+(?:[0-9] ?){6,14}[0-9]$", message = "Invalid phone number format")
-    @NotEmpty(message = "Phone number is required")
-    private String phoneNumber;
-
-    @NotEmpty(message = "User role is required")
-    @Pattern(regexp = "LANDLORD|TENANT", message = "Invalid user role")
-    private String role;
 
     @NotEmpty(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")

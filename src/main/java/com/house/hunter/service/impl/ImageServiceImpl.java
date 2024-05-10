@@ -42,6 +42,7 @@ public class ImageServiceImpl implements ImageService {
 
     @Transactional
     public List<UUID> uploadImage(UUID propertyId, MultipartFile[] images) throws IOException {
+        // TODO when the validation fails it still saves the images
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new PropertyNotFoundException("Property not found with id: " + propertyId));
         List<Image> imagesWillBeSaved = new ArrayList<>();

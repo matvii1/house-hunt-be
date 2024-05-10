@@ -5,11 +5,11 @@ INSERT INTO roles (name) VALUES ('LANDLORD');
 INSERT INTO roles (name) VALUES ('TENANT');
 
 -- Insert users
-INSERT INTO app_user (id, name, surname, email, phone_number, password, role, status)
+INSERT INTO app_user (id, name, surname, email, phone_number, password, role, account_status, verification_status)
 VALUES
-    ('123e4567-e89b-12d3-a456-426614174000', 'John', 'Doe', 'admin@admin.com', '+1234567890', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'ADMIN', 'ACTIVE'),
-    ('123e4567-e89b-12d3-a456-426614174001', 'Jane', 'Smith', 'landlord@landlord.com', '+0987654321', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE'),
-    ('123e4567-e89b-12d3-a456-426614174002', 'Mike', 'Johnson', 'tenant@tenant.com', '+1111111111', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE');
+    ('123e4567-e89b-12d3-a456-426614174000', 'John', 'Doe', 'admin@admin.com', '+1234567890', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'ADMIN', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174001', 'Jane', 'Smith', 'landlord@landlord.com', '+0987654321', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174002', 'Mike', 'Johnson', 'tenant@tenant.com', '+1111111111', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED');
 
 -- Insert properties
 INSERT INTO properties (id, title, address, price, square_meters, description, is_furnished, number_of_rooms, floor_number, available_from, ad_type, apartment_type, owner_id)

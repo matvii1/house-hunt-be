@@ -1,5 +1,6 @@
 package com.house.hunter.controller;
 
+import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.UserCredentials;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 
@@ -51,7 +53,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(email));
     }
 
-
     @PostMapping("/register")
     @Operation(summary = "Register user")
     @ResponseStatus(HttpStatus.CREATED)
@@ -60,7 +61,6 @@ public class UserController {
         userService.registerUser(userRegistrationDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
-
 
     @PutMapping("/password")
     @Operation(summary = "Update password")
@@ -84,7 +84,7 @@ public class UserController {
     @Operation(summary = "Get user documents")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
-    public ResponseEntity<?> getDocuments(@Valid @PathVariable @NotEmpty final String email) {
+    public ResponseEntity<List<String>> getDocuments(@Valid @PathVariable @NotEmpty final String email) {
         return new ResponseEntity<>(userService.getUserDocuments(email), HttpStatus.OK);
     }
 
@@ -124,6 +124,22 @@ public class UserController {
     public ResponseEntity<Void> deleteDocument(@PathVariable(value = "documentName") @NotEmpty String documentName) {
         userService.deleteDocument(documentName);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{userId}/verify")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> verifyUserIdentity(@PathVariable UUID userId) {
+        userService.verifyUser(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/register/admin")
+    @Operation(summary = "Register admin user")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> createAdminUser(@RequestBody @Valid final CreateAdminDTO createAdminDTO) {
+        userService.createAdminUser(createAdminDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
 }

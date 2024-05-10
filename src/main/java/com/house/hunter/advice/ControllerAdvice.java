@@ -7,6 +7,7 @@ import com.house.hunter.exception.IllegalAccessRequestException;
 import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.ImageAlreadyExistsException;
 import com.house.hunter.exception.ImageNotFoundException;
+import com.house.hunter.exception.InvalidAccountStatusException;
 import com.house.hunter.exception.InvalidDocumentTypeException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
@@ -166,6 +167,12 @@ public final class ControllerAdvice {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorDto> handleValidationException(IllegalArgumentException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(InvalidAccountStatusException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(InvalidAccountStatusException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }

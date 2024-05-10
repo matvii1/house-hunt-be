@@ -1,5 +1,6 @@
 package com.house.hunter.service;
 
+import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import org.springframework.core.io.Resource;
@@ -26,6 +27,10 @@ public interface UserService {
     UUID uploadDocument(String documentType, MultipartFile file);
 
     void deleteDocument(String documentName);
+
+    void verifyUser(UUID userId);
+
+    void createAdminUser(CreateAdminDTO createAdminDTO);
 
 }
 
