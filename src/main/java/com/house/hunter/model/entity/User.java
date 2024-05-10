@@ -1,5 +1,6 @@
 package com.house.hunter.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserRole;
 import com.house.hunter.constant.UserEmailVerificationStatus;
@@ -80,5 +81,6 @@ public class User {
     // fix the property search
     // add a complaint form
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnoreProperties({"owner"})
     private List<Property> properties = new ArrayList<>();
 }

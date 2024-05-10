@@ -5,6 +5,7 @@ import com.house.hunter.model.dto.property.CreatePropertyDTO;
 import com.house.hunter.model.dto.property.GetPropertyDTO;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
 import com.house.hunter.model.dto.property.UpdatePropertyDTO;
+import com.house.hunter.model.dto.search.PropertyDTO;
 import com.house.hunter.model.entity.Property;
 import com.house.hunter.service.ImageService;
 import com.house.hunter.service.PropertyService;
@@ -57,7 +58,7 @@ public class PropertyController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Search properties")
-    public Page<Property> searchProperties(PropertySearchCriteriaDTO criteria, Pageable pageable) {
+    public Page<PropertyDTO> searchProperties(PropertySearchCriteriaDTO criteria, Pageable pageable) {
         return propertyService.searchProperties(criteria, pageable);
     }
 

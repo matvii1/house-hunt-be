@@ -128,6 +128,8 @@ public class UserController {
 
     @PutMapping("/{userId}/verify")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Verify user identity")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Void> verifyUserIdentity(@PathVariable UUID userId) {
         userService.verifyUser(userId);
         return ResponseEntity.ok().build();

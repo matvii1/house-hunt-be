@@ -4,6 +4,7 @@ import com.house.hunter.model.dto.property.CreatePropertyDTO;
 import com.house.hunter.model.dto.property.GetPropertyDTO;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
 import com.house.hunter.model.dto.property.UpdatePropertyDTO;
+import com.house.hunter.model.dto.search.PropertyDTO;
 import com.house.hunter.model.entity.Property;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ public interface PropertyService {
 
     void deleteProperty(UUID id);
 
-    Page<Property> searchProperties(PropertySearchCriteriaDTO searchCriteria, Pageable pageable);
+    Page<PropertyDTO> searchProperties(PropertySearchCriteriaDTO searchCriteria, Pageable pageable);
 
     List<GetPropertyDTO> getProperties(String email);
 }

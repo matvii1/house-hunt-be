@@ -1,5 +1,7 @@
 package com.house.hunter.service.impl;
 
+import com.house.hunter.constant.UserAccountStatus;
+import com.house.hunter.constant.UserEmailVerificationStatus;
 import com.house.hunter.exception.IllegalAccessRequestException;
 import com.house.hunter.exception.PropertyAlreadyExistsException;
 import com.house.hunter.exception.PropertyNotFoundException;
@@ -8,6 +10,8 @@ import com.house.hunter.model.dto.property.CreatePropertyDTO;
 import com.house.hunter.model.dto.property.GetPropertyDTO;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
 import com.house.hunter.model.dto.property.UpdatePropertyDTO;
+import com.house.hunter.model.dto.search.PropertyDTO;
+import com.house.hunter.model.dto.search.UserDTO;
 import com.house.hunter.model.entity.Property;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.PropertyRepository;
@@ -69,9 +73,18 @@ public class PropertyServiceImpl implements PropertyService {
 
 
     @Override
-    public Page<Property> searchProperties(PropertySearchCriteriaDTO searchCriteria, Pageable pageable) {
-        return propertyRepository.findAll(PropertySpecifications.createSpecification(searchCriteria), pageable);
+    public Page<PropertyDTO> searchProperties(PropertySearchCriteriaDTO searchCriteria, Pageable pageable) {
+        Optional<User> requestMaker = userRepository.findByEmail(getAuthenticatedUserEmail());
+        Page<Property> properties = propertyRepository.findAll(PropertySpecifications.createSpecification(searchCriteria), pageable);
+        if (requestMaker.isPresent()) {
+            User user = requestMaker.get();
+            if (user.getVerificationStatus() == UserEmailVerificationStatus.VERIFIED && user.getAccountStatus() == UserAccountStatus.ACTIVE) {
+                return properties.map(property -> convertToDTO(property, true));
+            }
+        }
+        return properties.map(property -> convertToDTO(property, false));
     }
+
 
     @Override
     @Transactional
@@ -120,5 +133,21 @@ public class PropertyServiceImpl implements PropertyService {
     private boolean isAdmin() {
         List userDetails = (List) SecurityContextHolder.getContext().getAuthentication().getAuthorities();
         return userDetails.get(0).toString().equals("ROLE_ADMIN");
+    }
+
+    private PropertyDTO convertToDTO(Property property, boolean includePhoneNumber) {
+        PropertyDTO propertyDTO = modelMapper.map(property, PropertyDTO.class);
+        User owner = property.getOwner();
+        // Check if the owner is null
+        if (owner != null) {
+            // Check if the phone number should be included
+            if (!includePhoneNumber) {
+                // Set the phone number to null
+                owner.setPhoneNumber(null);
+            }
+            UserDTO ownerDTO = modelMapper.map(owner, UserDTO.class);
+            propertyDTO.setOwner(ownerDTO);
+        }
+        return propertyDTO;
     }
 }

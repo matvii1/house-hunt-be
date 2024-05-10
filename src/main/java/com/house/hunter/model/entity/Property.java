@@ -1,5 +1,6 @@
 package com.house.hunter.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.house.hunter.constant.AdType;
 import com.house.hunter.constant.ApartmentType;
 import com.house.hunter.constant.IsFurnished;
@@ -92,6 +93,7 @@ public class Property {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnoreProperties({"properties"})
     private User owner;
 
     @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
