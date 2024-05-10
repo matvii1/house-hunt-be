@@ -12,6 +12,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env
     volumes:
       - house-hunter-m2-cache:/root/.m2
     ports:

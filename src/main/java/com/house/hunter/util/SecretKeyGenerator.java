@@ -16,11 +16,9 @@ public class SecretKeyGenerator {
     private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
-    private static final String SECRET_KEY_ENV_NAME = "JWT_SECRET_KEY";
 
     public static String readEncryptedSecretFromEnv() {
-        Dotenv dotenv = Dotenv.configure().load();
-        return dotenv.get(SECRET_KEY_ENV_NAME);
+        return System.getenv("JWT_SECRET_KEY");
     }
 
     private static SecretKey decryptSecretKey(byte[] encryptedKey, byte[] iv) throws Exception {
