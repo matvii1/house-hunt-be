@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -56,7 +57,7 @@ public class UserController {
     @PostMapping("/register")
     @Operation(summary = "Register user")
     @ResponseStatus(HttpStatus.CREATED)
-    // no auth filter needed
+    // no auth filter needed public endpoint
     public ResponseEntity<Void> registerUser(@RequestBody @Valid final UserRegistrationDto userRegistrationDto) {
         userService.registerUser(userRegistrationDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -126,22 +127,38 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{userId}/verify")
+    @PutMapping("/verify/{email}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Verify user identity")
+    @Operation(summary = "Verify user identity as admin")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Void> verifyUserIdentity(@PathVariable String email) {
         userService.verifyUser(email);
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/activate/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Activate user account status as admin")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> activateUserAccountStatus(@PathVariable String email) {
+        userService.activateUser(email);
+        return ResponseEntity.ok().build();
+    }
+
+
     @PostMapping("/register/admin")
-    @Operation(summary = "Register admin user")
+    @Operation(summary = "Register admin user as admin")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> createAdminUser(@RequestBody @Valid final CreateAdminDTO createAdminDTO) {
         userService.createAdminUser(createAdminDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @RequestMapping(value = "/activate-account/verify", method = {RequestMethod.GET, RequestMethod.POST})
+    public ResponseEntity<String> activateUserAccount(@RequestParam("token") String confirmationToken) {
+        userService.confirmEmail(confirmationToken);
+        return ResponseEntity.ok("Email verified successfully!");
     }
 
 }

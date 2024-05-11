@@ -11,6 +11,7 @@ import com.house.hunter.exception.InvalidAccountStatusException;
 import com.house.hunter.exception.InvalidDocumentTypeException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
+import com.house.hunter.exception.InvalidVerificationTokenException;
 import com.house.hunter.exception.PropertyAlreadyExistsException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
@@ -173,6 +174,12 @@ public final class ControllerAdvice {
 
     @ExceptionHandler(InvalidAccountStatusException.class)
     public ResponseEntity<ErrorDto> handleValidationException(InvalidAccountStatusException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(InvalidVerificationTokenException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(InvalidVerificationTokenException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }

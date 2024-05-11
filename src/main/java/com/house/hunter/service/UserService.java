@@ -32,5 +32,9 @@ public interface UserService {
 
     void createAdminUser(CreateAdminDTO createAdminDTO);
 
+    void confirmEmail(String confirmationToken);
+
+    void activateUser(String email);
+
 }
 

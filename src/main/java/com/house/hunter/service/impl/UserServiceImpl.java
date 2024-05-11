@@ -2,23 +2,28 @@ package com.house.hunter.service.impl;
 
 import com.house.hunter.constant.DocumentType;
 import com.house.hunter.constant.UserAccountStatus;
-import com.house.hunter.constant.UserRole;
 import com.house.hunter.constant.UserEmailVerificationStatus;
+import com.house.hunter.constant.UserRole;
 import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
 import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.InvalidDocumentTypeException;
+import com.house.hunter.exception.InvalidVerificationTokenException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
+import com.house.hunter.model.entity.ConfirmationToken;
 import com.house.hunter.model.entity.Document;
 import com.house.hunter.model.entity.User;
+import com.house.hunter.repository.ConfirmationTokenRepository;
 import com.house.hunter.repository.DocumentRepository;
 import com.house.hunter.repository.UserRepository;
+import com.house.hunter.service.EmailService;
 import com.house.hunter.service.UserService;
 import com.house.hunter.util.DocumentUtil;
+import com.house.hunter.util.MailUtil;
 import com.house.hunter.util.PasswordEncoder;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -26,6 +31,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -39,14 +45,18 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final DocumentRepository documentRepository;
+    private final ConfirmationTokenRepository confirmationTokenRepository;
+    private final EmailService emailService;
     private final ModelMapper modelMapper;
     private final String documentDirectory;
 
-    public UserServiceImpl(UserRepository userRepository, DocumentRepository documentRepository, ModelMapper modelMapper, @Value("${documents.directory}") String documentDirectory) {
+    public UserServiceImpl(UserRepository userRepository, DocumentRepository documentRepository, ModelMapper modelMapper, @Value("${documents.directory}") String documentDirectory, ConfirmationTokenRepository confirmationTokenRepository, EmailService emailService) {
         this.userRepository = userRepository;
         this.documentRepository = documentRepository;
         this.modelMapper = modelMapper;
         this.documentDirectory = documentDirectory;
+        this.confirmationTokenRepository = confirmationTokenRepository;
+        this.emailService = emailService;
     }
 
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(UserServiceImpl.class);
@@ -61,10 +71,15 @@ public class UserServiceImpl implements UserService {
         }
         final User user = modelMapper.map(userRegistrationDto, User.class);
         user.setVerificationStatus(UserEmailVerificationStatus.PENDING_VERIFICATION);
+        user.setAccountStatus(UserAccountStatus.NOT_ACTIVATED);
         // Encrypting the password with automatic salting
         final String encryptedPassword = PasswordEncoder.getPasswordEncoder().encode(user.getPassword());
         user.setPassword(encryptedPassword);
         userRepository.save(user);
+        ConfirmationToken confirmationToken = new ConfirmationToken(user);
+        confirmationTokenRepository.save(confirmationToken);
+        MimeMessagePreparator registrationEmail = MailUtil.buildRegistrationEmail(user.getEmail(), confirmationToken.getConfirmationToken());
+        emailService.sendEmail(registrationEmail);
         LOGGER.info("User created: {}", user.getEmail());
     }
 
@@ -186,6 +201,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public void activateUser(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        user.setAccountStatus(UserAccountStatus.ACTIVE);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
     public void createAdminUser(CreateAdminDTO createAdminDTO) {
         if (userRepository.existsByEmail(createAdminDTO.getEmail())) {
             throw new UserAlreadyExistsException(createAdminDTO.getEmail());
@@ -199,6 +222,14 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encryptedPassword);
         userRepository.save(user);
         LOGGER.info("Admin user created: {}", user.getEmail());
+    }
+
+    @Override
+    public void confirmEmail(String confirmationToken) {
+        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken).orElseThrow(InvalidVerificationTokenException::new);
+        User user = userRepository.findByEmail(token.getUser().getEmail()).orElseThrow(() -> new UserNotFoundException("User not found with email: " + token.getUser().getEmail()));
+        user.setAccountStatus(UserAccountStatus.ACTIVE);
+        userRepository.save(user);
     }
 
 

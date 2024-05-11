@@ -2,8 +2,8 @@ package com.house.hunter.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.house.hunter.constant.UserAccountStatus;
-import com.house.hunter.constant.UserRole;
 import com.house.hunter.constant.UserEmailVerificationStatus;
+import com.house.hunter.constant.UserRole;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -64,21 +64,15 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @NotEmpty(message = "Email is required")
     private UserRole role;
 
     @Enumerated(EnumType.STRING)
-    @NotEmpty(message = "Email is required")
     private UserAccountStatus accountStatus;
 
     @Enumerated(EnumType.STRING)
-    @NotEmpty(message = "Email is required")
     private UserEmailVerificationStatus verificationStatus;
 
-    //TODO add a verify column for verifying the document
-    // How to do it on frontend and backend
     // implement email verification and add a flag as ACTIVE or INACTIVE and user can't login until they verify their email
-    // fix the property search
     // add a complaint form
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnoreProperties({"owner"})
