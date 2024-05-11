@@ -1,5 +1,6 @@
 package com.house.hunter.service.impl;
 
+import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.exception.InvalidAccountStatusException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
@@ -38,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
             // assumed that user is present in the database as the authentication is successful
             final User user = userRepository.findByEmail(email).get();
             // check the user account status for successful login
-            if (!user.getAccountStatus().equals("ACTIVE")) {
+            if (!user.getAccountStatus().equals(UserAccountStatus.valueOf("ACTIVE"))) {
                 throw new InvalidAccountStatusException();
             }
             final String token = jwtUtil.buildAccessToken(user.getEmail(), user.getRole());
