@@ -130,8 +130,8 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Verify user identity")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Void> verifyUserIdentity(@PathVariable UUID userId) {
-        userService.verifyUser(userId);
+    public ResponseEntity<Void> verifyUserIdentity(@PathVariable String email) {
+        userService.verifyUser(email);
         return ResponseEntity.ok().build();
     }
 

@@ -28,7 +28,7 @@ public interface UserService {
 
     void deleteDocument(String documentName);
 
-    void verifyUser(UUID userId);
+    void verifyUser(String userId);
 
     void createAdminUser(CreateAdminDTO createAdminDTO);
 

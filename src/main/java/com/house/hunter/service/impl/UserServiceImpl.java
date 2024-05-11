@@ -178,8 +178,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void verifyUser(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+    public void verifyUser(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
         user.setVerificationStatus(UserEmailVerificationStatus.VERIFIED);
         userRepository.save(user);
     }
