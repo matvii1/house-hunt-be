@@ -49,7 +49,7 @@ public class PropertyServiceImpl implements PropertyService {
     @Override
     @Transactional
     public UUID createProperty(CreatePropertyDTO propertyCreateDto) {
-        if (!isAdmin() && !propertyCreateDto.getOwnerEmail().equals(getAuthenticatedUserEmail())) {
+        if (!isAdmin() && !propertyCreateDto.getOwnerEmail().equals(getAuthenticatedUserEmail(false))) {
             throw new IllegalAccessRequestException();
         }
 
@@ -74,7 +74,7 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     public Page<PropertyDTO> searchProperties(PropertySearchCriteriaDTO searchCriteria, Pageable pageable) {
-        Optional<User> requestMaker = userRepository.findByEmail(getAuthenticatedUserEmail());
+        Optional<User> requestMaker = userRepository.findByEmail(getAuthenticatedUserEmail(true));
         Page<Property> properties = propertyRepository.findAll(PropertySpecifications.createSpecification(searchCriteria), pageable);
         if (requestMaker.isPresent()) {
             User user = requestMaker.get();
@@ -93,7 +93,7 @@ public class PropertyServiceImpl implements PropertyService {
         if (isAdmin()) {
             property = propertyRepository.findById(id).orElseThrow(PropertyNotFoundException::new);
         } else {
-            property = propertyRepository.findByOwnerEmailAndId(getAuthenticatedUserEmail(), id)
+            property = propertyRepository.findByOwnerEmailAndId(getAuthenticatedUserEmail(false), id)
                     .orElseThrow(PropertyNotFoundException::new);
         }
         modelMapper.map(updatePropertyDTO, property);
@@ -117,15 +117,18 @@ public class PropertyServiceImpl implements PropertyService {
         if (isAdmin()) {
             propertyRepository.deleteById(id);
         } else {
-            propertyRepository.deleteByOwnerEmailAndId(getAuthenticatedUserEmail(), id).orElseThrow(IllegalAccessRequestException::new);
+            propertyRepository.deleteByOwnerEmailAndId(getAuthenticatedUserEmail(false), id).orElseThrow(IllegalAccessRequestException::new);
         }
     }
 
-    private String getAuthenticatedUserEmail() {
+    private String getAuthenticatedUserEmail(boolean isEndpointPublic) {
         try {
             CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             return userDetails.getUsername();
         } catch (Exception e) {
+            if (isEndpointPublic){
+                return null;
+            }
             throw new IllegalAccessRequestException();
         }
     }

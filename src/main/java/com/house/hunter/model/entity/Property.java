@@ -49,11 +49,9 @@ public class Property {
     private UUID id;
 
     @NotEmpty(message = "Title is required")
-    @Column(unique = true)
     private String title;
 
     @NotEmpty(message = "Address is required")
-    @Column(unique = true)
     private String address;
 
     @DecimalMin(value = "0", message = "Price must be a positive number")
