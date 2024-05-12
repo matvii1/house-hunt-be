@@ -8,6 +8,7 @@ import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
 import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.InvalidDocumentTypeException;
+import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidVerificationTokenException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
@@ -39,6 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -171,12 +173,25 @@ public class UserServiceImpl implements UserService {
         User user = getAuthenticatedUser();
         try {
             String documentName = documentUtil.saveDocumentToStorage(documentDirectory, file);
-            Document document = new Document(null, documentName, DocumentType.valueOf(documentType), user);
-            return documentRepository.save(document).getId();
+
+            // Check if a document with the same user and documentType already exists
+            Optional<Document> existingDocument = documentRepository.findByUserAndDocumentType(user, DocumentType.valueOf(documentType));
+
+            if (existingDocument.isPresent()) {
+                // If the document exists, update its filename and save it
+                Document document = existingDocument.get();
+                document.setFilename(documentName);
+                return documentRepository.save(document).getId();
+            } else {
+                // If the document doesn't exist, create a new one and save it
+                Document document = new Document(null, documentName, DocumentType.valueOf(documentType), user);
+                return documentRepository.save(document).getId();
+            }
         } catch (IOException e) {
             throw new FileOperationException(e.getMessage());
         }
     }
+
 
     @Override
     @Transactional
@@ -232,6 +247,31 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+
+        // Generate a unique reset password token
+        String resetToken = UUID.randomUUID().toString();
+        user.setResetPasswordToken(resetToken);
+        userRepository.save(user);
+
+        // Send the password reset email with the link
+        MimeMessagePreparator resetPasswordEmail = MailUtil.buildResetPasswordEmail(user.getEmail(), resetToken);
+        emailService.sendEmail(resetPasswordEmail);
+    }
+
+    @Override
+    public void resetPassword(String resetToken, String newPassword) {
+        User user = userRepository.findByResetPasswordToken(resetToken)
+                .orElseThrow(() -> new InvalidTokenException("Invalid reset password token : " + resetToken));
+
+        // Update the user's password
+        user.setPassword(PasswordEncoder.getPasswordEncoder().encode(newPassword));
+        user.setResetPasswordToken(null);
+        userRepository.save(user);
+    }
 
     private User getAuthenticatedUser() {
         return userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())

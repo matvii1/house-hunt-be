@@ -36,5 +36,9 @@ public interface UserService {
 
     void activateUser(String email);
 
+    void forgotPassword(String email);
+
+    void resetPassword(String resetToken, String newPassword);
+
 }
 

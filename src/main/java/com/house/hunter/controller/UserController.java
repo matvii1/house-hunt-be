@@ -156,9 +156,27 @@ public class UserController {
     }
 
     @RequestMapping(value = "/activate-account/verify", method = {RequestMethod.GET, RequestMethod.POST})
+    @Operation(summary = "Activate user account")
+    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> activateUserAccount(@RequestParam("token") String confirmationToken) {
         userService.confirmEmail(confirmationToken);
         return ResponseEntity.ok("Email verified successfully!");
+    }
+
+    @PostMapping("/reset-password")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Reset password of the user with the token sent by email to the use")
+    public ResponseEntity<String> resetPassword(@RequestParam("token") String resetToken, @RequestBody String newPassword) {
+        userService.resetPassword(resetToken, newPassword);
+        return ResponseEntity.ok("Password reset successful");
+    }
+
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Send password reset email to the user with the email address provided")
+    public ResponseEntity<String> forgotPassword(@RequestParam("email") String email) {
+        userService.forgotPassword(email);
+        return ResponseEntity.ok("Password reset email sent");
     }
 
 }

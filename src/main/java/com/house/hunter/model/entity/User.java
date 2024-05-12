@@ -72,6 +72,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserEmailVerificationStatus verificationStatus;
 
+    @Column(name = "reset_password_token")
+    private String resetPasswordToken;
+
     // implement email verification and add a flag as ACTIVE or INACTIVE and user can't login until they verify their email
     // add a complaint form
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
