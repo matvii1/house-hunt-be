@@ -12,6 +12,7 @@ import com.house.hunter.exception.InvalidDocumentTypeException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.exception.InvalidVerificationTokenException;
+import com.house.hunter.exception.MailServiceException;
 import com.house.hunter.exception.PropertyAlreadyExistsException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
@@ -20,6 +21,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.el.PropertyNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.UnexpectedTypeException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -184,4 +186,15 @@ public final class ControllerAdvice {
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
+    @ExceptionHandler(MailServiceException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(MailServiceException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(UnexpectedTypeException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(UnexpectedTypeException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
 }

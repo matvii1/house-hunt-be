@@ -10,6 +10,7 @@ import com.house.hunter.exception.IllegalRequestException;
 import com.house.hunter.exception.InvalidDocumentTypeException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidVerificationTokenException;
+import com.house.hunter.exception.MailServiceException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
@@ -18,6 +19,7 @@ import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.entity.ConfirmationToken;
 import com.house.hunter.model.entity.Document;
 import com.house.hunter.model.entity.User;
+import com.house.hunter.model.pojo.UserRequestForm;
 import com.house.hunter.repository.ConfirmationTokenRepository;
 import com.house.hunter.repository.DocumentRepository;
 import com.house.hunter.repository.UserRepository;
@@ -39,6 +41,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -77,12 +81,18 @@ public class UserServiceImpl implements UserService {
         // Encrypting the password with automatic salting
         final String encryptedPassword = PasswordEncoder.getPasswordEncoder().encode(user.getPassword());
         user.setPassword(encryptedPassword);
+        user.setCreatedAt(java.time.LocalDateTime.now());
         userRepository.save(user);
         ConfirmationToken confirmationToken = new ConfirmationToken(user);
         confirmationTokenRepository.save(confirmationToken);
-        MimeMessagePreparator registrationEmail = MailUtil.buildRegistrationEmail(user.getEmail(), confirmationToken.getConfirmationToken());
-        emailService.sendEmail(registrationEmail);
-        LOGGER.info("User created: {}", user.getEmail());
+        try {
+            MimeMessagePreparator registrationEmail = MailUtil.buildRegistrationEmail(user.getEmail(), confirmationToken.getConfirmationToken());
+            emailService.sendEmail(registrationEmail);
+            LOGGER.info("User created: {}", user.getEmail());
+        } catch (Exception e) {
+            throw new MailServiceException(e.getMessage());
+        }
+
     }
 
     @Override
@@ -184,7 +194,7 @@ public class UserServiceImpl implements UserService {
                 return documentRepository.save(document).getId();
             } else {
                 // If the document doesn't exist, create a new one and save it
-                Document document = new Document(null, documentName, DocumentType.valueOf(documentType), user);
+                Document document = new Document(null, documentName, DocumentType.valueOf(documentType), LocalDateTime.now(), user);
                 return documentRepository.save(document).getId();
             }
         } catch (IOException e) {
@@ -232,6 +242,7 @@ public class UserServiceImpl implements UserService {
         user.setRole(UserRole.ADMIN);
         user.setVerificationStatus(UserEmailVerificationStatus.VERIFIED);
         user.setAccountStatus(UserAccountStatus.ACTIVE);
+        user.setCreatedAt(java.time.LocalDateTime.now());
         // Encrypting the password with automatic salting
         final String encryptedPassword = PasswordEncoder.getPasswordEncoder().encode(user.getPassword());
         user.setPassword(encryptedPassword);
@@ -272,6 +283,36 @@ public class UserServiceImpl implements UserService {
         user.setResetPasswordToken(null);
         userRepository.save(user);
     }
+
+    @Override
+    public void submitRequest(UserRequestForm userRequestForm) {
+        List<User> admins = userRepository.findByRole(UserRole.ADMIN).orElseThrow(UserNotFoundException::new);
+        for (User admin : admins) {
+            MimeMessagePreparator complaintEmail = MailUtil.buildRequestEmail(admin.getEmail(), userRequestForm);
+            emailService.sendEmail(complaintEmail);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void extendDataRetention(String token) {
+        String[] parts = token.split("_");
+        String email = parts[0];
+        long timestamp = Long.parseLong(parts[1]);
+
+        // Check if the token has expired (e.g., valid for 24 hours)
+        if (System.currentTimeMillis() - timestamp > 24 * 60 * 60 * 1000) {
+            throw new InvalidTokenException("Token has expired");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+
+        // Update the createdAt timestamp to the current time
+        user.setCreatedAt(LocalDateTime.now());
+        userRepository.save(user);
+    }
+
 
     private User getAuthenticatedUser() {
         return userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,17 +43,33 @@ public class ImageServiceImpl implements ImageService {
 
     @Transactional
     public List<UUID> uploadImage(UUID propertyId, MultipartFile[] images) throws IOException {
-        // TODO when the validation fails it still saves the images
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new PropertyNotFoundException("Property not found with id: " + propertyId));
-        List<Image> imagesWillBeSaved = new ArrayList<>();
-        for (MultipartFile imageFile : images) {
-            String filename = imageUtil.saveImageToStorage(imageDirectory, imageFile);
-            imagesWillBeSaved.add(new Image(null, filename, property));
+        List<String> savedFilenames = new ArrayList<>();
+        List<Image> savedImages = new ArrayList<>();
+        try {
+            for (MultipartFile imageFile : images) {
+                String filename = imageUtil.saveImageToStorage(imageDirectory, imageFile);
+                savedFilenames.add(filename);
+                Image image = new Image(null, filename, LocalDateTime.now(), property);
+                Image savedImage = imageRepository.save(image);
+                savedImages.add(savedImage);
+            }
+        } catch (Exception e) {
+            // Delete locally saved images in case of an exception
+            for (String filename : savedFilenames) {
+                try {
+                    imageUtil.deleteImage(imageDirectory, filename);
+                } catch (IOException ex) {
+                  throw e;
+                }
+            }
+            throw e;
         }
-        List<Image> savedImages = imageRepository.saveAll(imagesWillBeSaved);
+
         return savedImages.stream().map(Image::getId).collect(Collectors.toList());
     }
+
 
     public List<byte[]> getImages(UUID propertyId) throws PropertyNotFoundException {
         List<Image> images = imageRepository.findImagesByPropertyId(propertyId).orElseThrow(() -> new PropertyNotFoundException("Property not found with id: " + propertyId));

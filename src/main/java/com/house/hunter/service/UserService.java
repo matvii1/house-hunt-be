@@ -3,6 +3,7 @@ package com.house.hunter.service;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
+import com.house.hunter.model.pojo.UserRequestForm;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -40,5 +41,8 @@ public interface UserService {
 
     void resetPassword(String resetToken, String newPassword);
 
+    void submitRequest(UserRequestForm userRequestForm);
+
+    void extendDataRetention(String email);
 }
 

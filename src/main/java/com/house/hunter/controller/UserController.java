@@ -4,6 +4,7 @@ import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.UserCredentials;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
+import com.house.hunter.model.pojo.UserRequestForm;
 import com.house.hunter.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -131,7 +133,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Verify user identity as admin")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Void> verifyUserIdentity(@PathVariable String email) {
+    public ResponseEntity<Void> verifyUserIdentity(@NotEmpty @PathVariable String email) {
         userService.verifyUser(email);
         return ResponseEntity.ok().build();
     }
@@ -140,7 +142,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate user account status as admin")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<Void> activateUserAccountStatus(@PathVariable String email) {
+    public ResponseEntity<Void> activateUserAccountStatus(@NotEmpty @PathVariable String email) {
         userService.activateUser(email);
         return ResponseEntity.ok().build();
     }
@@ -158,7 +160,7 @@ public class UserController {
     @RequestMapping(value = "/activate-account/verify", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "Activate user account")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<String> activateUserAccount(@RequestParam("token") String confirmationToken) {
+    public ResponseEntity<String> activateUserAccount(@NotEmpty @RequestParam("token") String confirmationToken) {
         userService.confirmEmail(confirmationToken);
         return ResponseEntity.ok("Email verified successfully!");
     }
@@ -166,7 +168,7 @@ public class UserController {
     @PostMapping("/reset-password")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Reset password of the user with the token sent by email to the use")
-    public ResponseEntity<String> resetPassword(@RequestParam("token") String resetToken, @RequestBody String newPassword) {
+    public ResponseEntity<String> resetPassword(@NotEmpty @RequestParam("token") String resetToken, @NotEmpty @RequestBody String newPassword) {
         userService.resetPassword(resetToken, newPassword);
         return ResponseEntity.ok("Password reset successful");
     }
@@ -174,9 +176,26 @@ public class UserController {
     @PostMapping("/forgot-password")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Send password reset email to the user with the email address provided")
-    public ResponseEntity<String> forgotPassword(@RequestParam("email") String email) {
+    public ResponseEntity<String> forgotPassword(@NotEmpty @RequestParam("email") String email) {
         userService.forgotPassword(email);
         return ResponseEntity.ok("Password reset email sent");
+    }
+
+    @PostMapping("/request")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Submit a request to the admin for a complaint or a query")
+    public ResponseEntity<String> submitComplaint(@Valid @RequestBody UserRequestForm userRequestForm) {
+        userService.submitRequest(userRequestForm);
+        return ResponseEntity.status(HttpStatus.OK).body("Complaint submitted successfully");
+    }
+
+    @RequestMapping(path = "/extend-retention",  method = {RequestMethod.GET, RequestMethod.POST})
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Extend the data retention period for the user with the provided token")
+    public ResponseEntity<String> extendDataRetention(@RequestParam("token") String encodedToken) {
+        String token = new String(Base64.getUrlDecoder().decode(encodedToken));
+        userService.extendDataRetention(token);
+        return ResponseEntity.ok("Data retention period extended successfully");
     }
 
 }

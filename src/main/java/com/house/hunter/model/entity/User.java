@@ -24,6 +24,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -71,6 +72,9 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private UserEmailVerificationStatus verificationStatus;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @Column(name = "reset_password_token")
     private String resetPasswordToken;

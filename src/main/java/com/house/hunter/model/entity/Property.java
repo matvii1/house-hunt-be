@@ -19,6 +19,7 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -30,6 +31,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -55,6 +57,7 @@ public class Property {
     private String address;
 
     @DecimalMin(value = "0", message = "Price must be a positive number")
+    @Max(value = 50000000, message = "Price must be less than 50000000 CZK")
     @NotNull
     private double price;
 
@@ -89,6 +92,8 @@ public class Property {
     @NotNull
     private ApartmentType apartmentType;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     @JsonIgnoreProperties({"properties"})
