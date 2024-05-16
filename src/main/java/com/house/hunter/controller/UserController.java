@@ -1,6 +1,7 @@
 package com.house.hunter.controller;
 
 import com.house.hunter.model.dto.user.CreateAdminDTO;
+import com.house.hunter.model.dto.user.GetAllUsersResponse;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserPasswordUpdateDTO;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
@@ -15,6 +16,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -60,8 +63,16 @@ public class UserController {
     @Operation(summary = "Get user by id")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<UserGetResponse> getUserById(@PathVariable("id") @Valid @org.hibernate.validator.constraints.UUID final UUID uuid) {
+    public ResponseEntity<UserGetResponse> getUserById(@PathVariable("id") final UUID uuid) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserById(uuid));
+    }
+
+    @GetMapping("/all")
+    @Operation(summary = "Get all users")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<GetAllUsersResponse> getAllUsers(Pageable pageable) {
+        return userService.getAllUsers(pageable);
     }
 
     @PostMapping("/register")

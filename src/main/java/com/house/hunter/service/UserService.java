@@ -1,10 +1,13 @@
 package com.house.hunter.service;
 
 import com.house.hunter.model.dto.user.CreateAdminDTO;
+import com.house.hunter.model.dto.user.GetAllUsersResponse;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.pojo.UserRequestForm;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -16,7 +19,10 @@ public interface UserService {
     void registerUser(UserRegistrationDto userRegistrationDto);
 
     UserGetResponse getUserByEmail(String email);
+
     UserGetResponse getUserById(UUID id);
+
+    Page<GetAllUsersResponse> getAllUsers(Pageable pageable);
 
     void updatePassword(String oldPassword, String newPassword, String email);
 

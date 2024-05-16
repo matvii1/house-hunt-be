@@ -14,6 +14,7 @@ import com.house.hunter.exception.MailServiceException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
+import com.house.hunter.model.dto.user.GetAllUsersResponse;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.entity.ConfirmationToken;
@@ -34,6 +35,8 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -92,6 +95,15 @@ public class UserServiceImpl implements UserService {
             throw new MailServiceException(e.getMessage());
         }
 
+    }
+
+    @Override
+    public Page<GetAllUsersResponse> getAllUsers(Pageable pageable) {
+        Page users = userRepository.findAll(pageable);
+        if (users.isEmpty()) {
+            throw new UserNotFoundException("No users found");
+        }
+        return users.map(user -> modelMapper.map(user, GetAllUsersResponse.class));
     }
 
     @Override
