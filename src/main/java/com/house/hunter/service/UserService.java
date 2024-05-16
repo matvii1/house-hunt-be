@@ -51,5 +51,7 @@ public interface UserService {
     void submitRequest(UserRequestForm userRequestForm);
 
     void extendDataRetention(String email);
+
+     void blockUser(String email);
 }
 

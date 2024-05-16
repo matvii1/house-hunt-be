@@ -324,6 +324,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void blockUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        if (user.getAccountStatus() == UserAccountStatus.BLOCKED) {
+            throw new IllegalRequestException("User is already blocked");
+        }
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new IllegalRequestException("Admin user cannot be blocked");
+        }
+        user.setAccountStatus(UserAccountStatus.BLOCKED);
+        userRepository.save(user);
+        LOGGER.info("User account blocked: {}", user.getEmail());
+    }
+
+    @Override
     @Transactional
     public void extendDataRetention(String token) {
         String[] parts = token.split("_");

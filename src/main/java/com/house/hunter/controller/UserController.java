@@ -199,6 +199,13 @@ public class UserController {
         userService.forgotPassword(email);
         return ResponseEntity.ok("Password reset email sent");
     }
+    @PostMapping("/block/{email}")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Block the user with the email address provided")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void blockUser(@PathVariable String email) {
+        userService.blockUser(email);
+    }
 
     @PostMapping("/request")
     @ResponseStatus(HttpStatus.OK)
