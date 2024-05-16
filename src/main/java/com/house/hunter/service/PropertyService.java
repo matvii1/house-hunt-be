@@ -22,5 +22,7 @@ public interface PropertyService {
     Page<PropertyDTO> searchProperties(PropertySearchCriteriaDTO searchCriteria, Pageable pageable);
 
     List<GetPropertyDTO> getProperties(String email);
+
+    PropertyDTO getPropertyById(UUID id);
 }
 

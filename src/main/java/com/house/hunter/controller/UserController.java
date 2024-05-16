@@ -1,8 +1,8 @@
 package com.house.hunter.controller;
 
 import com.house.hunter.model.dto.user.CreateAdminDTO;
-import com.house.hunter.model.dto.user.UserCredentials;
 import com.house.hunter.model.dto.user.UserGetResponse;
+import com.house.hunter.model.dto.user.UserPasswordUpdateDTO;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.pojo.UserRequestForm;
 import com.house.hunter.service.UserService;
@@ -52,8 +52,16 @@ public class UserController {
     @Operation(summary = "Get user by email")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
-    public ResponseEntity<UserGetResponse> getUser(@RequestParam @Valid @Email final String email) {
-        return ResponseEntity.status(HttpStatus.OK).body(userService.getUser(email));
+    public ResponseEntity<UserGetResponse> getUserByEmail(@RequestParam @Valid @Email final String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserByEmail(email));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get user by id")
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<UserGetResponse> getUserById(@PathVariable("id") @Valid @org.hibernate.validator.constraints.UUID final UUID uuid) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getUserById(uuid));
     }
 
     @PostMapping("/register")
@@ -69,8 +77,8 @@ public class UserController {
     @Operation(summary = "Update password")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
-    public ResponseEntity<Void> updatePassword(@RequestBody @Valid final UserCredentials userCredentialsDto) {
-        userService.updatePassword(userCredentialsDto.getPassword(), userCredentialsDto.getEmail());
+    public ResponseEntity<Void> updatePassword(@RequestBody @Valid final UserPasswordUpdateDTO userPasswordUpdateDTO) {
+        userService.updatePassword(userPasswordUpdateDTO.getOldPassword(), userPasswordUpdateDTO.getNewPassword(), userPasswordUpdateDTO.getEmail());
         return ResponseEntity.ok().build();
     }
 
@@ -129,7 +137,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/verify/{email}")
+    @PutMapping("/admin/verify/{email}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Verify user identity as admin")
     @ResponseStatus(HttpStatus.OK)
@@ -138,7 +146,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/activate/{email}")
+    @PutMapping("/admin/activate/{email}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate user account status as admin")
     @ResponseStatus(HttpStatus.OK)
@@ -148,7 +156,7 @@ public class UserController {
     }
 
 
-    @PostMapping("/register/admin")
+    @PostMapping("/admin/register")
     @Operation(summary = "Register admin user as admin")
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
@@ -189,7 +197,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body("Complaint submitted successfully");
     }
 
-    @RequestMapping(path = "/extend-retention",  method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(path = "/extend-retention", method = {RequestMethod.GET, RequestMethod.POST})
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Extend the data retention period for the user with the provided token")
     public ResponseEntity<String> extendDataRetention(@RequestParam("token") String encodedToken) {

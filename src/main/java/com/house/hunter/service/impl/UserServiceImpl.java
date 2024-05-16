@@ -42,7 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -96,7 +95,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserGetResponse getUser(@Valid final String email) {
+    public UserGetResponse getUserByEmail(@Valid final String email) {
         // Get the currently authenticated user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String requestMakerEmail = authentication.getName();
@@ -118,8 +117,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserGetResponse getUserById(UUID uuid) {
+        return userRepository.findById(uuid)
+                .map(user -> {
+                    LOGGER.info("User found: {}", user.getEmail());
+                    return modelMapper.map(user, UserGetResponse.class);
+                })
+                .orElseThrow(() -> new UserNotFoundException(uuid.toString()));
+    }
+
+    @Override
     @Transactional
-    public void updatePassword(@Valid final String password, @Valid final String email) {
+    public void updatePassword(String oldPassword, String newPassword, String email) {
         // Get the currently authenticated user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUserEmail = authentication.getName();
@@ -129,7 +138,10 @@ public class UserServiceImpl implements UserService {
             final User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UserNotFoundException(email));
             LOGGER.info("User found: {}", email);
-            final String encryptedPassword = PasswordEncoder.getPasswordEncoder().encode(password);
+            if (!PasswordEncoder.getPasswordEncoder().matches(oldPassword, user.getPassword())) {
+                throw new IllegalRequestException("Old password is incorrect");
+            }
+            final String encryptedPassword = PasswordEncoder.getPasswordEncoder().encode(newPassword);
             user.setPassword(encryptedPassword);
             LOGGER.info("Password has been updated for user : {}", user.getEmail());
             userRepository.save(user);
@@ -188,6 +200,7 @@ public class UserServiceImpl implements UserService {
             Optional<Document> existingDocument = documentRepository.findByUserAndDocumentType(user, DocumentType.valueOf(documentType));
 
             if (existingDocument.isPresent()) {
+                LOGGER.info("Document already exists for user: {}", user.getEmail());
                 // If the document exists, update its filename and save it
                 Document document = existingDocument.get();
                 document.setFilename(documentName);
@@ -210,6 +223,7 @@ public class UserServiceImpl implements UserService {
             Document document = documentRepository.findByFilename(documentName)
                     .orElseThrow(DocumentNotFoundException::new);
             documentRepository.delete(document);
+            LOGGER.info("Document deleted: {}", documentName);
             documentUtil.deleteDocument(documentDirectory, documentName);
         } catch (IOException e) {
             throw new FileOperationException(e.getMessage());
@@ -229,6 +243,7 @@ public class UserServiceImpl implements UserService {
     public void activateUser(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
         user.setAccountStatus(UserAccountStatus.ACTIVE);
+        LOGGER.info("User account activated: {}", user.getEmail());
         userRepository.save(user);
     }
 
@@ -267,10 +282,12 @@ public class UserServiceImpl implements UserService {
         String resetToken = UUID.randomUUID().toString();
         user.setResetPasswordToken(resetToken);
         userRepository.save(user);
+        LOGGER.info("Reset password token generated for user: {}", user.getEmail());
 
         // Send the password reset email with the link
         MimeMessagePreparator resetPasswordEmail = MailUtil.buildResetPasswordEmail(user.getEmail(), resetToken);
         emailService.sendEmail(resetPasswordEmail);
+        LOGGER.info("Reset password email sent to user: {}", user.getEmail());
     }
 
     @Override
@@ -280,6 +297,7 @@ public class UserServiceImpl implements UserService {
 
         // Update the user's password
         user.setPassword(PasswordEncoder.getPasswordEncoder().encode(newPassword));
+        LOGGER.info("Password reset for user: {}", user.getEmail());
         user.setResetPasswordToken(null);
         userRepository.save(user);
     }
@@ -299,7 +317,7 @@ public class UserServiceImpl implements UserService {
         String[] parts = token.split("_");
         String email = parts[0];
         long timestamp = Long.parseLong(parts[1]);
-
+        LOGGER.info("Data retention extension requested for user: {}", email);
         // Check if the token has expired (e.g., valid for 24 hours)
         if (System.currentTimeMillis() - timestamp > 24 * 60 * 60 * 1000) {
             throw new InvalidTokenException("Token has expired");
@@ -307,10 +325,11 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
-
-        // Update the createdAt timestamp to the current time
-        user.setCreatedAt(LocalDateTime.now());
+        // Update the createdAt timestamp to the current time plus 1 year
+        final LocalDateTime newRetentionDate = user.getCreatedAt().plusYears(1);
+        user.setCreatedAt(newRetentionDate);
         userRepository.save(user);
+        LOGGER.info("Data retention is extended till {} for user {}", newRetentionDate, email);
     }
 
 

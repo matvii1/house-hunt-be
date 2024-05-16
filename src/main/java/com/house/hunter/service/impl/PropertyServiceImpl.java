@@ -21,6 +21,7 @@ import com.house.hunter.service.PropertyService;
 import com.house.hunter.util.PropertySpecifications;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class PropertyServiceImpl implements PropertyService {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(PropertyServiceImpl.class);
 
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
@@ -79,8 +81,10 @@ public class PropertyServiceImpl implements PropertyService {
         Optional<User> requestMaker = userRepository.findByEmail(getAuthenticatedUserEmail(true));
         Page<Property> properties = propertyRepository.findAll(PropertySpecifications.createSpecification(searchCriteria), pageable);
         if (requestMaker.isPresent()) {
+            LOGGER.info("User found with email: {}", requestMaker.get().getEmail());
             User user = requestMaker.get();
             if (user.getVerificationStatus() == UserEmailVerificationStatus.VERIFIED && user.getAccountStatus() == UserAccountStatus.ACTIVE) {
+                LOGGER.info("User is verified and active, showing phone number");
                 return properties.map(property -> convertToDTO(property, true));
             }
         }
@@ -94,7 +98,10 @@ public class PropertyServiceImpl implements PropertyService {
         Property property;
         if (isAdmin()) {
             property = propertyRepository.findById(id).orElseThrow(PropertyNotFoundException::new);
+            LOGGER.info("Admin user found, updating property with id: {}", id);
         } else {
+            String email = getAuthenticatedUserEmail(false);
+            LOGGER.info("Non-admin user {} is updating property with id: {}", email, id);
             property = propertyRepository.findByOwnerEmailAndId(getAuthenticatedUserEmail(false), id)
                     .orElseThrow(PropertyNotFoundException::new);
         }
@@ -106,10 +113,24 @@ public class PropertyServiceImpl implements PropertyService {
     public List<GetPropertyDTO> getProperties(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
-
         return user.getProperties().stream()
                 .map(property -> modelMapper.map(property, GetPropertyDTO.class))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PropertyDTO getPropertyById(UUID id) {
+        Optional<User> requestMaker = userRepository.findByEmail(getAuthenticatedUserEmail(true));
+        Property property = propertyRepository.findById(id).orElseThrow(PropertyNotFoundException::new);
+        if (requestMaker.isPresent()) {
+            LOGGER.info("User found with email: {}", requestMaker.get().getEmail());
+            User user = requestMaker.get();
+            if (user.getVerificationStatus() == UserEmailVerificationStatus.VERIFIED && user.getAccountStatus() == UserAccountStatus.ACTIVE) {
+                LOGGER.info("User is verified and active, showing phone number");
+                return convertToDTO(property, true);
+            }
+        }
+        return convertToDTO(property, false);
     }
 
 
@@ -117,8 +138,10 @@ public class PropertyServiceImpl implements PropertyService {
     @Transactional
     public void deleteProperty(UUID id) {
         if (isAdmin()) {
+            LOGGER.info("Admin user found, deleting property with id: {}", id);
             propertyRepository.deleteById(id);
         } else {
+            LOGGER.info("Non-admin user {} is deleting property with id: {}", getAuthenticatedUserEmail(false), id);
             propertyRepository.deleteByOwnerEmailAndId(getAuthenticatedUserEmail(false), id).orElseThrow(IllegalAccessRequestException::new);
         }
     }
@@ -128,7 +151,7 @@ public class PropertyServiceImpl implements PropertyService {
             CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             return userDetails.getUsername();
         } catch (Exception e) {
-            if (isEndpointPublic){
+            if (isEndpointPublic) {
                 return null;
             }
             throw new IllegalAccessRequestException();

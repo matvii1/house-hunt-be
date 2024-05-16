@@ -12,6 +12,8 @@ import com.house.hunter.service.ImageService;
 import com.house.hunter.util.ImageUtil;
 import jakarta.el.PropertyNotFoundException;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,14 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 public class ImageServiceImpl implements ImageService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImageServiceImpl.class);
+
     private final ImageRepository imageRepository;
     private final PropertyRepository propertyRepository;
 
@@ -54,6 +57,7 @@ public class ImageServiceImpl implements ImageService {
                 Image image = new Image(null, filename, LocalDateTime.now(), property);
                 Image savedImage = imageRepository.save(image);
                 savedImages.add(savedImage);
+                LOGGER.info("Image uploaded: {}", filename);
             }
         } catch (Exception e) {
             // Delete locally saved images in case of an exception
@@ -61,13 +65,14 @@ public class ImageServiceImpl implements ImageService {
                 try {
                     imageUtil.deleteImage(imageDirectory, filename);
                 } catch (IOException ex) {
-                  throw e;
+                    LOGGER.error("Error deleting image: {}", filename, ex);
+                    throw e;
                 }
             }
             throw e;
         }
 
-        return savedImages.stream().map(Image::getId).collect(Collectors.toList());
+        return savedImages.stream().map(Image::getId).toList();
     }
 
 
@@ -81,7 +86,6 @@ public class ImageServiceImpl implements ImageService {
                         throw new FileOperationException(e.getMessage());
                     }
                 })
-                .filter(Objects::nonNull)
                 .flatMap(byteArray -> byteArray != null ? Stream.of(byteArray) : Stream.empty())
                 .toList();
     }
@@ -101,9 +105,8 @@ public class ImageServiceImpl implements ImageService {
         if (!property.getId().equals(propertyId) || !property.getOwner().getEmail().equals(getAuthenticatedUserEmail())) {
             throw new IllegalAccessRequestException();
         }
-
         imageRepository.delete(image);
-
+        LOGGER.info("Image deleted: {}", image.getFilename());
         try {
             imageUtil.deleteImage(imageDirectory, image.getFilename());
         } catch (IOException e) {

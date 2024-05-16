@@ -14,6 +14,7 @@ import com.house.hunter.service.AuthService;
 import com.house.hunter.util.BlacklistedTokenService;
 import com.house.hunter.util.JWTUtil;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +25,8 @@ import java.time.Instant;
 @Service
 @AllArgsConstructor
 public class AuthServiceImpl implements AuthService {
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(AuthServiceImpl.class);
+
     private final UserRepository userRepository;
     private final JWTUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
@@ -44,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
             }
             final String token = jwtUtil.buildAccessToken(user.getEmail(), user.getRole());
             final RefreshToken refreshToken = createRefreshToken(user);
+            LOGGER.info("User {} logged in successfully", user.getEmail());
             return UserLoginResponse.builder().email(userCredentials.getEmail()).token(token).refreshToken(refreshToken.getToken()).build();
         }
         throw new InvalidUserAuthenticationException();
@@ -58,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
         verifyExpiration(refreshToken);
         // get the user from the refresh token and generate a new access token
         final User user = refreshToken.getUser();
+        LOGGER.info("User {} refreshed the token", user.getEmail());
         return jwtUtil.buildAccessToken(user.getEmail(), user.getRole());
     }
 
@@ -83,6 +88,7 @@ public class AuthServiceImpl implements AuthService {
         Instant expiryDate = jwtUtil.getExpirationDateFromToken(tokenWithoutPrefix);
         // Add the token to the blacklist using the BlacklistedTokenService
         blacklistedTokenService.addToBlacklist(tokenWithoutPrefix, expiryDate);
+        LOGGER.info("Token {} is blacklisted", tokenWithoutPrefix);
     }
 
     private void verifyExpiration(RefreshToken token) {

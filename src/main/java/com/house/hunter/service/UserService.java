@@ -15,9 +15,10 @@ public interface UserService {
 
     void registerUser(UserRegistrationDto userRegistrationDto);
 
-    UserGetResponse getUser(String email);
+    UserGetResponse getUserByEmail(String email);
+    UserGetResponse getUserById(UUID id);
 
-    void updatePassword(String password, String email);
+    void updatePassword(String oldPassword, String newPassword, String email);
 
     void deleteUser(String email);
 

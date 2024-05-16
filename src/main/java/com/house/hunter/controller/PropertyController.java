@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,6 +47,12 @@ public class PropertyController {
     public PropertyController(PropertyService propertyService, ImageService imageService) {
         this.propertyService = propertyService;
         this.imageService = imageService;
+    }
+    @GetMapping("/details")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Get property details by id")
+    public PropertyDTO getPropertyDetailsById(@RequestParam UUID id) {
+        return propertyService.getPropertyById(id);
     }
 
     @PostMapping
