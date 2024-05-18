@@ -20,15 +20,16 @@ public class PropertySearchCriteriaDTO {
     private Double minPrice;
     private Double maxPrice;
     private int squareMeters;
-    private IsFurnished isFurnished;
+    private String[] isFurnished;
     private Integer minFloorNumber;
     private Integer maxFloorNumber;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate availableFrom;
+    private String[] createdAt;
     private Integer minRooms;
     private Integer maxRooms;
-    private AdType adType;
-    private ApartmentType apartmentType;
+    private String[] adType;
+    private String[] apartmentType;
     private String address;
     private String description;
     private String ownerEmail;

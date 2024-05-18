@@ -5,4 +5,8 @@ public enum AdType {
     SALE;
     // Constant regex pattern
     public static final String PATTERN = "RENTAL|SALE";
+    @Override
+    public String toString() {
+        return name().toUpperCase();
+    }
 }
