@@ -1,11 +1,16 @@
 package com.house.hunter.model.dto.property;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.house.hunter.constant.AdType;
 import com.house.hunter.constant.ApartmentType;
 import com.house.hunter.constant.IsFurnished;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -18,7 +23,8 @@ public class PropertySearchCriteriaDTO {
     private IsFurnished isFurnished;
     private Integer minFloorNumber;
     private Integer maxFloorNumber;
-    private Date availableFrom;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate availableFrom;
     private Integer minRooms;
     private Integer maxRooms;
     private AdType adType;
