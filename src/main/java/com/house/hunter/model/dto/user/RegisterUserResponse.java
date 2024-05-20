@@ -2,7 +2,7 @@ package com.house.hunter.model.dto.user;
 
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserRole;
-import com.house.hunter.constant.UserEmailVerificationStatus;
+import com.house.hunter.constant.UserVerificationStatus;
 import lombok.Data;
 
 import java.util.UUID;
@@ -16,5 +16,5 @@ public class RegisterUserResponse {
     private String phoneNumber;
     private UserRole role;
     private UserAccountStatus status;
-    private UserEmailVerificationStatus verificationStatus;
+    private UserVerificationStatus verificationStatus;
 }

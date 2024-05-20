@@ -1,6 +1,6 @@
 package com.house.hunter.constant;
 
-public enum UserEmailVerificationStatus {
+public enum UserVerificationStatus {
     NOT_VERIFIED,
     PENDING_VERIFICATION,
     VERIFIED,

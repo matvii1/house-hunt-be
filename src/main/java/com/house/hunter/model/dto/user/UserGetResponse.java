@@ -3,7 +3,7 @@ package com.house.hunter.model.dto.user;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserRole;
-import com.house.hunter.constant.UserEmailVerificationStatus;
+import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.model.entity.Document;
 import com.house.hunter.model.entity.Property;
 import lombok.AllArgsConstructor;
@@ -25,7 +25,7 @@ public class UserGetResponse {
     private String phoneNumber;
     private UserRole role;
     private UserAccountStatus accountStatus;
-    private UserEmailVerificationStatus verificationStatus;
+    private UserVerificationStatus verificationStatus;
     private Set<Document> documents;
     private List<Property> properties;
 }

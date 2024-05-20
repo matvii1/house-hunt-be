@@ -2,7 +2,7 @@ package com.house.hunter.service.impl;
 
 import com.house.hunter.constant.DocumentType;
 import com.house.hunter.constant.UserAccountStatus;
-import com.house.hunter.constant.UserEmailVerificationStatus;
+import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.constant.UserRole;
 import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
             throw new UserAlreadyExistsException(userRegistrationDto.getEmail());
         }
         final User user = modelMapper.map(userRegistrationDto, User.class);
-        user.setVerificationStatus(UserEmailVerificationStatus.PENDING_VERIFICATION);
+        user.setVerificationStatus(UserVerificationStatus.PENDING_VERIFICATION);
         user.setAccountStatus(UserAccountStatus.NOT_ACTIVATED);
         // Encrypting the password with automatic salting
         final String encryptedPassword = PasswordEncoder.getPasswordEncoder().encode(user.getPassword());
@@ -117,7 +117,7 @@ public class UserServiceImpl implements UserService {
                     .map(user -> {
                         LOGGER.info("User found: {}", user.getEmail());
                         // If the user is not verified, hide the phone number
-                        if (userRepository.findByEmail(requestMakerEmail).get().getVerificationStatus() != UserEmailVerificationStatus.VERIFIED) {
+                        if (userRepository.findByEmail(requestMakerEmail).get().getVerificationStatus() != UserVerificationStatus.VERIFIED) {
                             user.setPhoneNumber(null);
                         }
                         return modelMapper.map(user, UserGetResponse.class);
@@ -246,7 +246,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void verifyUser(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
-        user.setVerificationStatus(UserEmailVerificationStatus.VERIFIED);
+        user.setVerificationStatus(UserVerificationStatus.VERIFIED);
         userRepository.save(user);
     }
 
@@ -267,7 +267,7 @@ public class UserServiceImpl implements UserService {
         }
         final User user = modelMapper.map(createAdminDTO, User.class);
         user.setRole(UserRole.ADMIN);
-        user.setVerificationStatus(UserEmailVerificationStatus.VERIFIED);
+        user.setVerificationStatus(UserVerificationStatus.VERIFIED);
         user.setAccountStatus(UserAccountStatus.ACTIVE);
         user.setCreatedAt(java.time.LocalDateTime.now());
         // Encrypting the password with automatic salting

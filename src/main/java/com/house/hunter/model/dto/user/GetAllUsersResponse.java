@@ -2,7 +2,7 @@ package com.house.hunter.model.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.house.hunter.constant.UserAccountStatus;
-import com.house.hunter.constant.UserEmailVerificationStatus;
+import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.constant.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,5 +20,5 @@ public class GetAllUsersResponse {
     private String phoneNumber;
     private UserRole role;
     private UserAccountStatus accountStatus;
-    private UserEmailVerificationStatus verificationStatus;
+    private UserVerificationStatus verificationStatus;
 }

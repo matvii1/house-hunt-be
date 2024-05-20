@@ -22,4 +22,5 @@ public interface UserRepository extends CrudRepository<User, UUID> {
     Optional<List<User>> findByAccountStatusAndCreatedAtBefore(UserAccountStatus accountStatus, LocalDateTime date);
     Optional<List<User>> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
     Page findAll(Pageable pageable);
+    long countByRole(UserRole role);
 }

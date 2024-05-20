@@ -2,7 +2,7 @@ package com.house.hunter.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.house.hunter.constant.UserAccountStatus;
-import com.house.hunter.constant.UserEmailVerificationStatus;
+import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.constant.UserRole;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -71,7 +71,7 @@ public class User {
     private UserAccountStatus accountStatus;
 
     @Enumerated(EnumType.STRING)
-    private UserEmailVerificationStatus verificationStatus;
+    private UserVerificationStatus verificationStatus;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

@@ -1,7 +1,7 @@
 package com.house.hunter.service.impl;
 
 import com.house.hunter.constant.UserAccountStatus;
-import com.house.hunter.constant.UserEmailVerificationStatus;
+import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.exception.IllegalAccessRequestException;
 import com.house.hunter.exception.PropertyAlreadyExistsException;
 import com.house.hunter.exception.PropertyNotFoundException;
@@ -83,7 +83,7 @@ public class PropertyServiceImpl implements PropertyService {
         if (requestMaker.isPresent()) {
             LOGGER.info("User found with email: {}", requestMaker.get().getEmail());
             User user = requestMaker.get();
-            if (user.getVerificationStatus() == UserEmailVerificationStatus.VERIFIED && user.getAccountStatus() == UserAccountStatus.ACTIVE) {
+            if (user.getVerificationStatus() == UserVerificationStatus.VERIFIED && user.getAccountStatus() == UserAccountStatus.ACTIVE) {
                 LOGGER.info("User is verified and active, showing phone number");
                 return properties.map(property -> convertToDTO(property, true));
             }
@@ -125,7 +125,7 @@ public class PropertyServiceImpl implements PropertyService {
         if (requestMaker.isPresent()) {
             LOGGER.info("User found with email: {}", requestMaker.get().getEmail());
             User user = requestMaker.get();
-            if (user.getVerificationStatus() == UserEmailVerificationStatus.VERIFIED && user.getAccountStatus() == UserAccountStatus.ACTIVE) {
+            if (user.getVerificationStatus() == UserVerificationStatus.VERIFIED && user.getAccountStatus() == UserAccountStatus.ACTIVE) {
                 LOGGER.info("User is verified and active, showing phone number");
                 return convertToDTO(property, true);
             }
