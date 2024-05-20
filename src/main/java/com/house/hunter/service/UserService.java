@@ -52,6 +52,9 @@ public interface UserService {
 
     void extendDataRetention(String email);
 
-     void blockUser(String email);
+    void blockUser(String email);
+
+    void markUserAsNotVerified(String email);
+
 }
 

@@ -157,6 +157,16 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/admin/unverify/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Mark user as not verified")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> markUserAsNotVerified(@NotEmpty @PathVariable String email) {
+        userService.markUserAsNotVerified(email);
+        return ResponseEntity.ok().build();
+    }
+
+
     @PutMapping("/admin/activate/{email}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Activate user account status as admin")

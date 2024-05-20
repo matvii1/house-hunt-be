@@ -2,8 +2,8 @@ package com.house.hunter.service.impl;
 
 import com.house.hunter.constant.DocumentType;
 import com.house.hunter.constant.UserAccountStatus;
-import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.constant.UserRole;
+import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
 import com.house.hunter.exception.IllegalRequestException;
@@ -336,6 +336,16 @@ public class UserServiceImpl implements UserService {
         user.setAccountStatus(UserAccountStatus.BLOCKED);
         userRepository.save(user);
         LOGGER.info("User account blocked: {}", user.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public void markUserAsNotVerified(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+
+        user.setVerificationStatus(UserVerificationStatus.NOT_VERIFIED);
+        userRepository.save(user);
     }
 
     @Override
