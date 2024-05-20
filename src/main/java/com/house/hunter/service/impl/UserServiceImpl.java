@@ -377,7 +377,8 @@ public class UserServiceImpl implements UserService {
 
     private boolean hasRole(Authentication authentication, UserRole role) {
         return authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals(role.name()));
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role.name()));
     }
+
 
 }
