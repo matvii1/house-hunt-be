@@ -2,10 +2,10 @@ package com.house.hunter.controller;
 
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.GetAllUsersResponse;
+import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserPasswordUpdateDTO;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
-import com.house.hunter.model.pojo.UserRequestForm;
 import com.house.hunter.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -209,20 +209,13 @@ public class UserController {
         userService.forgotPassword(email);
         return ResponseEntity.ok("Password reset email sent");
     }
+
     @PostMapping("/block/{email}")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Block the user with the email address provided")
     @PreAuthorize("hasRole('ADMIN')")
     public void blockUser(@PathVariable String email) {
         userService.blockUser(email);
-    }
-
-    @PostMapping("/request")
-    @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Submit a request to the admin for a complaint or a query")
-    public ResponseEntity<String> submitComplaint(@Valid @RequestBody UserRequestForm userRequestForm) {
-        userService.submitRequest(userRequestForm);
-        return ResponseEntity.status(HttpStatus.OK).body("Complaint submitted successfully");
     }
 
     @RequestMapping(path = "/extend-retention", method = {RequestMethod.GET, RequestMethod.POST})
@@ -232,6 +225,14 @@ public class UserController {
         String token = new String(Base64.getUrlDecoder().decode(encodedToken));
         userService.extendDataRetention(token);
         return ResponseEntity.ok("Data retention period extended successfully");
+    }
+
+    @PostMapping("/request")
+    @ResponseStatus(HttpStatus.OK)
+    @Operation(summary = "Submit a request to the admin for a complaint or a query")
+    public ResponseEntity<String> submitRequest(@Valid @RequestBody RequestFormDTO requestFormDTO) {
+        userService.submitRequest(requestFormDTO);
+        return ResponseEntity.status(HttpStatus.OK).body("Request form is submitted successfully");
     }
 
 }

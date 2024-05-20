@@ -1,10 +1,10 @@
 package com.house.hunter.service;
 
+import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.GetAllUsersResponse;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
-import com.house.hunter.model.pojo.UserRequestForm;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -48,13 +48,13 @@ public interface UserService {
 
     void resetPassword(String resetToken, String newPassword);
 
-    void submitRequest(UserRequestForm userRequestForm);
-
     void extendDataRetention(String email);
 
     void blockUser(String email);
 
     void markUserAsNotVerified(String email);
+
+    void submitRequest(RequestFormDTO requestFormDTO);
 
 }
 

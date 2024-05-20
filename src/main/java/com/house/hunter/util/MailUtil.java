@@ -1,6 +1,6 @@
 package com.house.hunter.util;
 
-import com.house.hunter.model.pojo.UserRequestForm;
+import com.house.hunter.model.dto.user.RequestFormDTO;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
@@ -71,7 +71,7 @@ public class MailUtil {
         };
     }
 
-    public static MimeMessagePreparator buildRequestEmail(String recipientEmail, UserRequestForm userRequestForm) {
+    public static MimeMessagePreparator buildRequestEmail(String recipientEmail, RequestFormDTO requestFormDTO) {
         return mimeMessage -> {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
             messageHelper.setTo(recipientEmail);
@@ -81,12 +81,34 @@ public class MailUtil {
                     "<img src='cid:logo' alt='House Hunter Logo' style='width: 200px; height: auto;'><br><br>" +
                     "<p>A new complaint has been submitted:</p>" +
                     "<ul>" +
-                    "<li>Name: " + userRequestForm.getName() + "</li>" +
-                    "<li>Email: " + userRequestForm.getEmail() + "</li>" +
-                    "<li>Type: " + userRequestForm.getType() + "</li>" +
-                    "<li>Subject: " + userRequestForm.getSubject() + "</li>" +
-                    "<li>Message: " + userRequestForm.getMessage() + "</li>" +
-                    (userRequestForm.getPropertyId() != null ? "<li>Property ID: " + userRequestForm.getPropertyId() + "</li>" : "") +
+                    "<li>Name: " + requestFormDTO.getName() + "</li>" +
+                    "<li>Email: " + requestFormDTO.getEmail() + "</li>" +
+                    "<li>Subject: " + requestFormDTO.getSubject() + "</li>" +
+                    "<li>Message: " + requestFormDTO.getMessage() + "</li>" +
+                    (requestFormDTO.getPropertyId() != null ? "<li>Property ID: " + requestFormDTO.getPropertyId() + "</li>" : "") +
+                    "</ul>" +
+                    "</body></html>";
+
+            messageHelper.setText(message, true);
+            messageHelper.addInline("logo", new ClassPathResource(LOGO_PATH));
+        };
+    }
+
+    public static MimeMessagePreparator buildComplaintEmail(String recipientEmail, RequestFormDTO requestFormDTO) {
+        return mimeMessage -> {
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
+            messageHelper.setTo(recipientEmail);
+            messageHelper.setSubject("New Complaint Received");
+
+            String message = "<html><body>" +
+                    "<img src='cid:logo' alt='House Hunter Logo' style='width: 200px; height: auto;'><br><br>" +
+                    "<p>A new complaint has been submitted.:</p>" +
+                    "<ul>" +
+                    "<li>Name: " + requestFormDTO.getName() + "</li>" +
+                    "<li>Email: " + requestFormDTO.getEmail() + "</li>" +
+                    "<li>Subject: " + requestFormDTO.getSubject() + "</li>" +
+                    "<li>Message: " + requestFormDTO.getMessage() + "</li>" +
+                    (requestFormDTO.getPropertyId() != null ? "<li>Property ID: " + requestFormDTO.getPropertyId() + "</li>" : "") +
                     "</ul>" +
                     "</body></html>";
 

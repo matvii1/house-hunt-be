@@ -1,9 +1,8 @@
-package com.house.hunter.model.pojo;
+package com.house.hunter.model.dto.user;
 
-import com.house.hunter.constant.UserRequestType;
+import com.house.hunter.constant.RequestFormSubject;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,17 +10,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRequestForm {
+public class RequestFormDTO {
     @NotEmpty(message = "Name is required")
     private String name;
     @NotEmpty(message = "Email is required")
     private String email;
-    @Pattern(regexp = UserRequestType.PATTERN, message = "Invalid request type")
-    private String type;
-    @NotEmpty(message = "Subject is required")
+    @NotEmpty(message = "Furnished info cannot be empty")
+    @Pattern(regexp = RequestFormSubject.PATTERN, message = "Invalid subject value")
     private String subject;
     @NotEmpty(message = "Message is required")
-    @Size(min = 10, message = "Message must be at least 10 characters long")
     private String message;
     private String propertyId;
 }

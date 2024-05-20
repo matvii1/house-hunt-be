@@ -13,6 +13,7 @@ import com.house.hunter.exception.InvalidVerificationTokenException;
 import com.house.hunter.exception.MailServiceException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
+import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.GetAllUsersResponse;
 import com.house.hunter.model.dto.user.UserGetResponse;
@@ -20,7 +21,6 @@ import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.entity.ConfirmationToken;
 import com.house.hunter.model.entity.Document;
 import com.house.hunter.model.entity.User;
-import com.house.hunter.model.pojo.UserRequestForm;
 import com.house.hunter.repository.ConfirmationTokenRepository;
 import com.house.hunter.repository.DocumentRepository;
 import com.house.hunter.repository.UserRepository;
@@ -315,15 +315,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void submitRequest(UserRequestForm userRequestForm) {
-        List<User> admins = userRepository.findByRole(UserRole.ADMIN).orElseThrow(UserNotFoundException::new);
-        for (User admin : admins) {
-            MimeMessagePreparator complaintEmail = MailUtil.buildRequestEmail(admin.getEmail(), userRequestForm);
-            emailService.sendEmail(complaintEmail);
-        }
-    }
-
-    @Override
     public void blockUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
@@ -346,6 +337,15 @@ public class UserServiceImpl implements UserService {
 
         user.setVerificationStatus(UserVerificationStatus.NOT_VERIFIED);
         userRepository.save(user);
+    }
+
+    @Override
+    public void submitRequest(RequestFormDTO requestFormDTO) {
+        List<User> admins = userRepository.findByRole(UserRole.ADMIN).orElseThrow(UserNotFoundException::new);
+        for (User admin : admins) {
+            MimeMessagePreparator complaintEmail = MailUtil.buildComplaintEmail(admin.getEmail(), requestFormDTO);
+            emailService.sendEmail(complaintEmail);
+        }
     }
 
     @Override
