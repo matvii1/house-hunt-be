@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.house.hunter.constant.AdType;
 import com.house.hunter.constant.ApartmentType;
 import com.house.hunter.constant.IsFurnished;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -99,6 +100,6 @@ public class Property {
     @JsonIgnoreProperties({"properties"})
     private User owner;
 
-    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY,cascade = CascadeType.ALL, orphanRemoval = true)
     List<Image> images = new ArrayList<>();
 }
