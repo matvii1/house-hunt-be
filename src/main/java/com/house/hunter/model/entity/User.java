@@ -1,6 +1,11 @@
 package com.house.hunter.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.constant.UserRole;
@@ -74,13 +79,12 @@ public class User {
     private UserVerificationStatus verificationStatus;
 
     @Column(name = "created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime createdAt;
 
     @Column(name = "reset_password_token")
     private String resetPasswordToken;
 
-    // implement email verification and add a flag as ACTIVE or INACTIVE and user can't login until they verify their email
-    // add a complaint form
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnoreProperties({"owner"})
     private List<Property> properties = new ArrayList<>();

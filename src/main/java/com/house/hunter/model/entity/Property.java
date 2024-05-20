@@ -1,5 +1,6 @@
 package com.house.hunter.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.house.hunter.constant.AdType;
 import com.house.hunter.constant.ApartmentType;
@@ -94,12 +95,15 @@ public class Property {
     private ApartmentType apartmentType;
 
     @Column(name = "created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
     @JsonIgnoreProperties({"properties"})
     private User owner;
 
-    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY,cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "property", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"property"})
     List<Image> images = new ArrayList<>();
 }

@@ -13,6 +13,7 @@ import com.house.hunter.exception.InvalidVerificationTokenException;
 import com.house.hunter.exception.MailServiceException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
+import com.house.hunter.model.dto.search.PropertyDTO;
 import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.GetAllUsersResponse;
@@ -20,6 +21,7 @@ import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.entity.ConfirmationToken;
 import com.house.hunter.model.entity.Document;
+import com.house.hunter.model.entity.Property;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.ConfirmationTokenRepository;
 import com.house.hunter.repository.DocumentRepository;
@@ -45,9 +47,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -133,10 +137,19 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(uuid)
                 .map(user -> {
                     LOGGER.info("User found: {}", user.getEmail());
-                    return modelMapper.map(user, UserGetResponse.class);
+                    UserGetResponse response = modelMapper.map(user, UserGetResponse.class);
+                    List<Property> properties = new ArrayList<>(user.getProperties());
+                    List<Property> propertyDTOs = properties.stream()
+                            .peek(property -> {
+                                property.setOwner(null); // Exclude the owner field
+                            })
+                            .toList();
+                    response.setProperties(propertyDTOs);
+                    return response;
                 })
                 .orElseThrow(() -> new UserNotFoundException(uuid.toString()));
     }
+
 
     @Override
     @Transactional
