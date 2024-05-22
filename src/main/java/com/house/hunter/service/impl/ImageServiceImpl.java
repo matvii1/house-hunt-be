@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -52,7 +51,7 @@ public class ImageServiceImpl implements ImageService {
         List<Image> savedImages = new ArrayList<>();
         try {
             for (MultipartFile imageFile : images) {
-                String filename = imageUtil.saveImageToStorage(imageDirectory, imageFile);
+                String filename = imageUtil.saveImages(imageDirectory, imageFile, true);
                 savedFilenames.add(filename);
                 Image image = new Image(null, filename, LocalDateTime.now(), property);
                 Image savedImage = imageRepository.save(image);
@@ -84,7 +83,7 @@ public class ImageServiceImpl implements ImageService {
         try {
             deleteImages(propertyId);
             for (MultipartFile imageFile : images) {
-                String filename = imageUtil.saveImageToStorage(imageDirectory, imageFile);
+                String filename = imageUtil.saveUpdatedImages(imageDirectory, imageFile);
                 savedFilenames.add(filename);
                 Image image = new Image(null, filename, LocalDateTime.now(), property);
                 Image savedImage = imageRepository.save(image);

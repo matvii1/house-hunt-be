@@ -45,7 +45,11 @@ public final class ImageUtil {
         }
     }
 
-    public String saveImageToStorage(String uploadDirectory, MultipartFile imageFile) throws IOException {
+    public String saveUpdatedImages(String uploadDirectory, MultipartFile imageFile) throws IOException {
+        return saveImages(uploadDirectory, imageFile, false);
+    }
+
+    public String saveImages(String uploadDirectory, MultipartFile imageFile, boolean isDuplicatedCheck) throws IOException {
         final String uniqueFileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
 
         final Path uploadPath = Path.of(uploadDirectory);
@@ -54,16 +58,17 @@ public final class ImageUtil {
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
-
-        // Check if an image with the same data already exists
-        if (isImageDuplicate(uploadDirectory, imageFile)) {
-            throw new IllegalArgumentException("Image with the same data already exists");
+        if (isDuplicatedCheck) {
+            // Check if an image with the same data already exists
+            if (isImageDuplicate(uploadDirectory, imageFile)) {
+                throw new IllegalArgumentException("Image with the same data already exists");
+            }
         }
-
         Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
         return uniqueFileName;
     }
+
 
     private boolean isImageDuplicate(String uploadDirectory, MultipartFile imageFile) throws IOException {
         byte[] newImageBytes = imageFile.getBytes();
