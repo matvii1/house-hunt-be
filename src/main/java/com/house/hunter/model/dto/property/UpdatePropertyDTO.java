@@ -59,7 +59,6 @@ public class UpdatePropertyDTO {
     private int floorNumber;
 
     @FutureOrPresent(message = "The date must be in the future or present")
-    @NotNull
     private Date availableFrom;
 
     @NotEmpty(message = "Ad type cannot be empty")
