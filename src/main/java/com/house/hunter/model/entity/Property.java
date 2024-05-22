@@ -71,6 +71,10 @@ public class Property {
     @Size(min = 20, message = "Description must be at least 10 characters long")
     private String description;
 
+    @NotEmpty(message = "District is required")
+    @Size(min = 20, message = "District must be at least 10 characters long")
+    private String district;
+
     @Enumerated(EnumType.STRING)
     private IsFurnished isFurnished;
 
