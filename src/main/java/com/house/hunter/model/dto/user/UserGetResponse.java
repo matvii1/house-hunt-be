@@ -31,6 +31,7 @@ public class UserGetResponse {
     private UserRole role;
     private UserAccountStatus accountStatus;
     private UserVerificationStatus verificationStatus;
+    @JsonIgnoreProperties({"owner"})
     private Set<Document> documents;
     @JsonIgnoreProperties({"owner"})
     private List<Property> properties;
