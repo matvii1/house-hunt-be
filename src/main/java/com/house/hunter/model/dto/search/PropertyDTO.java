@@ -20,4 +20,5 @@ public class PropertyDTO {
     private String adType;
     private String apartmentType;
     private UserDTO owner;
+    private String district;
 }

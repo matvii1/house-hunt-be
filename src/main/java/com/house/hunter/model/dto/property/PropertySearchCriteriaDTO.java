@@ -33,4 +33,5 @@ public class PropertySearchCriteriaDTO {
     private String address;
     private String description;
     private String ownerEmail;
+    private String district;
 }

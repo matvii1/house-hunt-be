@@ -47,6 +47,9 @@ public class UpdatePropertyDTO {
     @Pattern(regexp = IsFurnished.PATTERN, message = "Invalid furnished value")
     private String isFurnished;
 
+    @NotEmpty(message = "District info cannot be empty")
+    private String district;
+
     @NotNull(message = "Number of rooms is required")
     @Positive(message = "Number of rooms must be positive")
     private int numberOfRooms;

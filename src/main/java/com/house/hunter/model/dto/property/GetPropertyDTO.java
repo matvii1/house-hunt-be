@@ -1,5 +1,6 @@
 package com.house.hunter.model.dto.property;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,4 +27,5 @@ public class GetPropertyDTO {
     private String adType;
     private String apartmentType;
     private String ownerEmail;
+    private String district;
 }

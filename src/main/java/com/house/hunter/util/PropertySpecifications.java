@@ -24,6 +24,10 @@ public class PropertySpecifications {
             if (criteria.getTitle() != null && !criteria.getTitle().isEmpty()) {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + criteria.getTitle().toLowerCase() + "%"));
             }
+            if (criteria.getDistrict() != null && !criteria.getDistrict().isEmpty()) {
+                predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("district")), "%" + criteria.getDistrict().toLowerCase() + "%"));
+            }
+
             if (criteria.getMinPrice() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("price"), criteria.getMinPrice()));
             }
