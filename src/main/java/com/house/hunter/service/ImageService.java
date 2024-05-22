@@ -15,4 +15,6 @@ public interface ImageService {
 
     void deleteImages(UUID propertyId) throws IOException;
 
+    List<UUID> updateImage(UUID propertyId, MultipartFile[] images) throws IOException;
+
 }

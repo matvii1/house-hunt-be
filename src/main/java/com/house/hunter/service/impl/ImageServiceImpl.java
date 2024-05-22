@@ -75,6 +75,38 @@ public class ImageServiceImpl implements ImageService {
         return savedImages.stream().map(Image::getId).toList();
     }
 
+    @Transactional
+    public List<UUID> updateImage(UUID propertyId, MultipartFile[] images) throws IOException {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new PropertyNotFoundException("Property not found with id: " + propertyId));
+        List<String> savedFilenames = new ArrayList<>();
+        List<Image> savedImages = new ArrayList<>();
+        try {
+            deleteImages(propertyId);
+            for (MultipartFile imageFile : images) {
+                String filename = imageUtil.saveImageToStorage(imageDirectory, imageFile);
+                savedFilenames.add(filename);
+                Image image = new Image(null, filename, LocalDateTime.now(), property);
+                Image savedImage = imageRepository.save(image);
+                savedImages.add(savedImage);
+                LOGGER.info("Image uploaded: {}", filename);
+            }
+        } catch (Exception e) {
+            // Delete locally saved images in case of an exception
+            for (String filename : savedFilenames) {
+                try {
+                    imageUtil.deleteImage(imageDirectory, filename);
+                } catch (IOException ex) {
+                    LOGGER.error("Error deleting image: {}", filename, ex);
+                    throw e;
+                }
+            }
+            throw e;
+        }
+
+        return savedImages.stream().map(Image::getId).toList();
+    }
+
 
     public List<byte[]> getImages(UUID propertyId) throws PropertyNotFoundException {
         List<Image> images = imageRepository.findImagesByPropertyId(propertyId).orElseThrow(() -> new PropertyNotFoundException("Property not found with id: " + propertyId));

@@ -6,7 +6,6 @@ import com.house.hunter.model.dto.property.GetPropertyDTO;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
 import com.house.hunter.model.dto.property.UpdatePropertyDTO;
 import com.house.hunter.model.dto.search.PropertyDTO;
-import com.house.hunter.model.entity.Property;
 import com.house.hunter.service.ImageService;
 import com.house.hunter.service.PropertyService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,6 +47,7 @@ public class PropertyController {
         this.propertyService = propertyService;
         this.imageService = imageService;
     }
+
     @GetMapping("/details")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Get property details by id")
@@ -107,6 +107,19 @@ public class PropertyController {
                                    )
                                    @RequestPart(value = "images") MultipartFile[] images) throws IOException {
         return imageService.uploadImage(propertyId, images);
+    }
+
+    @PutMapping(path = "/{propertyId}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
+    @Operation(summary = "Update the images of a property")
+    public List<UUID> updateImages(@PathVariable UUID propertyId,
+                                   @ArraySchema(
+                                           schema = @Schema(type = "string", format = "binary"),
+                                           minItems = 1
+                                   )
+                                   @RequestPart(value = "images") MultipartFile[] images) throws IOException {
+        return imageService.updateImage(propertyId, images);
     }
 
     @GetMapping("/{propertyId}/images")
