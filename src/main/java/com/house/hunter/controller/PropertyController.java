@@ -82,8 +82,8 @@ public class PropertyController {
     @Operation(summary = "Update property")
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<CreatePropertyDTO> updateProperty(@PathVariable UUID id, @RequestBody UpdatePropertyDTO updatePropertyDTO) {
-        CreatePropertyDTO updatedProperty = propertyService.updateProperty(id, updatePropertyDTO);
+    public ResponseEntity<UpdatePropertyDTO> updateProperty(@PathVariable UUID id, @RequestBody UpdatePropertyDTO updatePropertyDTO) {
+        UpdatePropertyDTO updatedProperty = propertyService.updateProperty(id, updatePropertyDTO);
         return ResponseEntity.ok(updatedProperty);
     }
 

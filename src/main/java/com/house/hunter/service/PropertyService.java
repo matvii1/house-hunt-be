@@ -15,7 +15,7 @@ import java.util.UUID;
 public interface PropertyService {
     UUID createProperty(CreatePropertyDTO propertyCreateDto);
 
-    CreatePropertyDTO updateProperty(UUID id, UpdatePropertyDTO updatePropertyDTO);
+    UpdatePropertyDTO updateProperty(UUID id, UpdatePropertyDTO updatePropertyDTO);
 
     void deleteProperty(UUID id);
 

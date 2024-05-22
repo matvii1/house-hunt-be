@@ -94,7 +94,7 @@ public class PropertyServiceImpl implements PropertyService {
 
     @Override
     @Transactional
-    public CreatePropertyDTO updateProperty(UUID id, UpdatePropertyDTO updatePropertyDTO) {
+    public UpdatePropertyDTO updateProperty(UUID id, UpdatePropertyDTO updatePropertyDTO) {
         Property property;
         if (isAdmin()) {
             property = propertyRepository.findById(id).orElseThrow(PropertyNotFoundException::new);
@@ -105,8 +105,7 @@ public class PropertyServiceImpl implements PropertyService {
             property = propertyRepository.findByOwnerEmailAndId(getAuthenticatedUserEmail(false), id)
                     .orElseThrow(PropertyNotFoundException::new);
         }
-        modelMapper.map(updatePropertyDTO, property);
-        return modelMapper.map(property, CreatePropertyDTO.class);
+        return modelMapper.map(property, UpdatePropertyDTO.class);
     }
 
     @Override
