@@ -13,10 +13,9 @@ import com.house.hunter.exception.InvalidVerificationTokenException;
 import com.house.hunter.exception.MailServiceException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
-import com.house.hunter.model.dto.search.PropertyDTO;
-import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.GetAllUsersResponse;
+import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import com.house.hunter.model.entity.ConfirmationToken;
@@ -37,6 +36,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.MimeMessagePreparator;
@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -75,7 +74,7 @@ public class UserServiceImpl implements UserService {
 
     private final DocumentUtil documentUtil = DocumentUtil.getInstance();
 
-    @Transactional
+    @Transactional()
     @Override
     public void registerUser(@Valid final UserRegistrationDto userRegistrationDto) {
         if (userRepository.existsByEmail(userRegistrationDto.getEmail())) {

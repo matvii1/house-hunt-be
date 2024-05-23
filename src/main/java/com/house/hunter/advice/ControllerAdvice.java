@@ -32,7 +32,6 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -166,7 +165,11 @@ public final class ControllerAdvice {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorDto> handleValidationException(DataIntegrityViolationException ex) {
-        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        if (ex.getMessage().contains("violates unique constraint")) {
+            final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), "The phone number is either invalid or taken", List.of("The phone number is either invalid or taken"));
+            return ResponseEntity.status(error.getStatus()).body(error);
+        }
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getCause().getMessage(), List.of(ex.getCause().getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
@@ -205,9 +208,10 @@ public final class ControllerAdvice {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
-    @ExceptionHandler(SQLException.class)
-    public ResponseEntity<ErrorDto> handleValidationException(SQLException ex) {
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(IllegalStateException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
+
 }
