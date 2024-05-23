@@ -198,7 +198,7 @@ public class UserController {
     @PostMapping("/reset-password")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Reset password of the user with the token sent by email to the use")
-    public ResponseEntity<String> resetPassword(@NotEmpty @RequestParam("token") String resetToken, @NotEmpty @RequestBody PasswordResetDto passwordResetDto) {
+    public ResponseEntity<String> resetPassword(@NotEmpty @RequestParam("token") String resetToken, @RequestBody PasswordResetDto passwordResetDto) {
         userService.resetPassword(resetToken, passwordResetDto.getNewPassword());
         return ResponseEntity.ok("Password reset successful");
     }
