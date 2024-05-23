@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,7 @@ public class JWTUtil {
     private long accessTokenExpirationTime;
     @Value("${jwt.refresh.expiration}")
     private long refreshTokenExpirationTime;
-
+    @Autowired
     private UserRepository userRepository;
     private static final String TOKEN_HEADER = "Authorization";
     private static final String TOKEN_PREFIX = "Bearer ";
@@ -53,6 +54,7 @@ public class JWTUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", email);
         claims.put("role", role);
+        claims.put("status", userRepository.findByEmail(email).get().getVerificationStatus().name());
         return TOKEN_PREFIX + Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(Date.from(Instant.now()))
@@ -85,6 +87,7 @@ public class JWTUtil {
 
             // Check if the token is expired, email is invalid, or role is invalid
             return expirationTime.isAfter(Instant.now()) &&
+                    getStatus(claims) != null && !getStatus(claims).isEmpty() &&
                     getEmail(claims) != null && !getEmail(claims).isEmpty() &&
                     getRole(claims) != null && isValidRole(getRole(claims));
         } catch (Exception e) {
@@ -108,6 +111,11 @@ public class JWTUtil {
 
     private String getRole(Claims claims) {
         var deg = claims.get("role", String.class);
+        return deg;
+    }
+
+    private String getStatus(Claims claims) {
+        var deg = claims.get("status", String.class);
         return deg;
     }
 
