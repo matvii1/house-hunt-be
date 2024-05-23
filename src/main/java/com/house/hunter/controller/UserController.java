@@ -2,6 +2,7 @@ package com.house.hunter.controller;
 
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.GetAllUsersResponse;
+import com.house.hunter.model.dto.user.PasswordResetDto;
 import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserPasswordUpdateDTO;
@@ -197,8 +198,8 @@ public class UserController {
     @PostMapping("/reset-password")
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Reset password of the user with the token sent by email to the use")
-    public ResponseEntity<String> resetPassword(@NotEmpty @RequestParam("token") String resetToken, @NotEmpty @RequestBody String newPassword) {
-        userService.resetPassword(resetToken, newPassword);
+    public ResponseEntity<String> resetPassword(@NotEmpty @RequestParam("token") String resetToken, @NotEmpty @RequestBody PasswordResetDto passwordResetDto) {
+        userService.resetPassword(resetToken, passwordResetDto.getNewPassword());
         return ResponseEntity.ok("Password reset successful");
     }
 

@@ -22,6 +22,7 @@ import jakarta.el.PropertyNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.UnexpectedTypeException;
+import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -194,6 +195,12 @@ public final class ControllerAdvice {
 
     @ExceptionHandler(UnexpectedTypeException.class)
     public ResponseEntity<ErrorDto> handleValidationException(UnexpectedTypeException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(PSQLException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(PSQLException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }

@@ -1,13 +1,12 @@
 package com.house.hunter.constant;
 
 public enum RequestFormSubject {
-    PROPERTY,
+    QUESTION,
     COMPLAINT,
-    OTHER;
+    VIEWING,;
 
     // Constant regular expression that matches the enum values
-    public static final String PATTERN = "PROPERTY|COMPLAINT|OTHER";
-
+    public static final String PATTERN = "QUESTION|COMPLAINT|VIEWING";
     @Override
     public String toString() {
         return name().toUpperCase();
