@@ -162,15 +162,15 @@ public class PropertyServiceImpl implements PropertyService {
         return userDetails.get(0).toString().equals("ROLE_ADMIN");
     }
 
-    private PropertyDTO convertToDTO(Property property, boolean includePhoneNumber) {
+    private PropertyDTO convertToDTO(Property property, boolean includeOwner) {
         PropertyDTO propertyDTO = modelMapper.map(property, PropertyDTO.class);
         User owner = property.getOwner();
         // Check if the owner is null
         if (owner != null) {
             // Check if the phone number should be included
-            if (!includePhoneNumber) {
+            if (!includeOwner) {
                 // Set the phone number to null
-                owner.setPhoneNumber(null);
+                return propertyDTO;
             }
             UserDTO ownerDTO = modelMapper.map(owner, UserDTO.class);
             propertyDTO.setOwner(ownerDTO);
