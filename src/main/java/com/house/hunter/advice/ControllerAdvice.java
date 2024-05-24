@@ -163,6 +163,7 @@ public final class ControllerAdvice {
         return ResponseEntity.status(error.getStatus()).body(error);
     }
 
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorDto> handleValidationException(DataIntegrityViolationException ex) {
         if (ex.getMessage().contains("violates unique constraint")) {
