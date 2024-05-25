@@ -62,7 +62,7 @@ public class MailUtil {
             String message = "<html><body>" +
                     "<img src='cid:logo' alt='House Hunter Logo' style='width: 200px; height: auto;'><br><br>" +
                     "<p>You have requested to reset your password. Please click on the below link to reset your password:</p>" +
-                    "<p><a href='" + HOST + "/api/v1/user/reset-password?token=" + resetToken + "'>Reset Password</a></p>" +
+                    "<p><a href='http://localhost:3000/house-hunt-fe#/reset-password?token=" + resetToken + "'>Reset Password</a></p>" +
                     "<p>If you did not request a password reset, please ignore this email.</p>" +
                     "</body></html>";
 
