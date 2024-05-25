@@ -36,7 +36,6 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.MimeMessagePreparator;
@@ -48,6 +47,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -291,8 +291,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void confirmEmail(String confirmationToken) {
-        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken).orElseThrow(InvalidVerificationTokenException::new);
-        User user = userRepository.findByEmail(token.getUser().getEmail()).orElseThrow(() -> new UserNotFoundException("User not found with email: " + token.getUser().getEmail()));
+        ConfirmationToken token = confirmationTokenRepository.findByConfirmationToken(confirmationToken)
+                .orElseThrow(InvalidVerificationTokenException::new);
+        Date createdDate = token.getCreatedDate();
+
+        // Get the current date and subtract 30 minutes
+        Date currentDateMinus30Minutes = new Date(System.currentTimeMillis() - 30 * 60 * 1000);
+
+        // If the token creation date is before the current date minus 30 minutes, then the token is expired
+        if (createdDate.before(currentDateMinus30Minutes)) {
+            throw new InvalidVerificationTokenException();
+        }
+
+        User user = userRepository.findByEmail(token.getUser().getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + token.getUser().getEmail()));
         user.setAccountStatus(UserAccountStatus.ACTIVE);
         userRepository.save(user);
     }

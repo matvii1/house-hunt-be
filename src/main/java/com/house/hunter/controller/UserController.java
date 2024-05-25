@@ -177,7 +177,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-
     @PostMapping("/admin/register")
     @Operation(summary = "Register admin user as admin")
     @ResponseStatus(HttpStatus.CREATED)
