@@ -2,6 +2,7 @@ package com.house.hunter.service.impl;
 
 
 import com.house.hunter.constant.AdType;
+import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.constant.UserRole;
 import com.house.hunter.model.dto.stats.StatsDTO;
 import com.house.hunter.repository.PropertyRepository;
@@ -26,9 +27,9 @@ public class StatsServiceImpl implements StatsService {
     @Override
     @Cacheable(value = "stats", key = "'allStats'")
     public StatsDTO getStats() {
-        long totalProperties = propertyRepository.count();
-        long totalRentalProperties = propertyRepository.countByAdType(AdType.RENTAL);
-        long totalSaleProperties = propertyRepository.countByAdType(AdType.SALE);
+        long totalProperties = propertyRepository.countByStatus(PropertyStatus.VERIFIED);
+        long totalRentalProperties = propertyRepository.countByAdTypeAndStatus(AdType.RENTAL, PropertyStatus.VERIFIED);
+        long totalSaleProperties = propertyRepository.countByAdTypeAndStatus(AdType.SALE, PropertyStatus.VERIFIED);
 
         long totalUsers = userRepository.count();
         long totalLandlords = userRepository.countByRole(UserRole.LANDLORD);

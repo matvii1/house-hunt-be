@@ -106,7 +106,6 @@ public class UserController {
     @GetMapping("/documents/{email}")
     @Operation(summary = "Get user documents")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD','TENANT')")
     public ResponseEntity<List<String>> getDocuments(@Valid @PathVariable @NotEmpty final String email) {
         return new ResponseEntity<>(userService.getUserDocuments(email), HttpStatus.OK);
     }
@@ -139,6 +138,22 @@ public class UserController {
                            @RequestPart("file") MultipartFile file) {
         return userService.uploadDocument(documentType, file);
     }
+
+    @PostMapping(path = "/documents/ownership/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload ownership document as landlord")
+    @PreAuthorize("hasAnyRole('LANDLORD')")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UUID uploadOwnershipDocument(
+                                        @RequestParam UUID propertyId,
+                                        @Parameter(
+                                                description = "Document file",
+                                                required = true,
+                                                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                                        )
+                                        @RequestPart("file") MultipartFile file) {
+        return userService.uploadOwnershipDocument(file, propertyId);
+    }
+
 
     @DeleteMapping("/documents/{documentName}")
     @Operation(summary = "Delete document")

@@ -3,6 +3,7 @@ package com.house.hunter.util;
 import com.house.hunter.constant.AdType;
 import com.house.hunter.constant.ApartmentType;
 import com.house.hunter.constant.IsFurnished;
+import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
 import com.house.hunter.model.entity.Property;
 import jakarta.persistence.criteria.Predicate;
@@ -16,11 +17,10 @@ import java.util.stream.Collectors;
 
 
 public class PropertySpecifications {
-
     public static Specification<Property> createSpecification(PropertySearchCriteriaDTO criteria) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-
+            predicates.add(criteriaBuilder.equal(root.get("status"), PropertyStatus.VERIFIED));
             if (criteria.getTitle() != null && !criteria.getTitle().isEmpty()) {
                 predicates.add(criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + criteria.getTitle().toLowerCase() + "%"));
             }

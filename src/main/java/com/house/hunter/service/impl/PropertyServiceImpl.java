@@ -1,30 +1,42 @@
 package com.house.hunter.service.impl;
 
+import com.house.hunter.constant.DocumentType;
+import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserVerificationStatus;
+import com.house.hunter.event.PropertyRejectionEvent;
 import com.house.hunter.exception.IllegalAccessRequestException;
 import com.house.hunter.exception.PropertyAlreadyExistsException;
 import com.house.hunter.exception.PropertyNotFoundException;
+import com.house.hunter.exception.PropertyNotVerifiedException;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.property.CreatePropertyDTO;
 import com.house.hunter.model.dto.property.GetPropertyDTO;
+import com.house.hunter.model.dto.property.GetPropertyRequestDTO;
 import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
 import com.house.hunter.model.dto.property.UpdatePropertyDTO;
 import com.house.hunter.model.dto.search.PropertyDTO;
 import com.house.hunter.model.dto.search.UserDTO;
+import com.house.hunter.model.entity.Document;
 import com.house.hunter.model.entity.Property;
 import com.house.hunter.model.entity.User;
+import com.house.hunter.repository.DocumentRepository;
 import com.house.hunter.repository.PropertyRepository;
 import com.house.hunter.repository.UserRepository;
 import com.house.hunter.security.CustomUserDetails;
+import com.house.hunter.service.EmailService;
 import com.house.hunter.service.PropertyService;
+import com.house.hunter.util.MailUtil;
 import com.house.hunter.util.PropertySpecifications;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -41,12 +53,21 @@ public class PropertyServiceImpl implements PropertyService {
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final EmailService emailService;
+
+    private final DocumentRepository documentRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    public PropertyServiceImpl(PropertyRepository propertyRepository, UserRepository userRepository, ModelMapper modelMapper) {
+    public PropertyServiceImpl(PropertyRepository propertyRepository, UserRepository userRepository, DocumentRepository documentRepository,
+                               ModelMapper modelMapper, ApplicationEventPublisher applicationEventPublisher,
+                               EmailService emailService) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
+        this.documentRepository = documentRepository;
         this.modelMapper = modelMapper;
+        this.applicationEventPublisher = applicationEventPublisher;
+        this.emailService = emailService;
     }
 
     @Override
@@ -68,10 +89,10 @@ public class PropertyServiceImpl implements PropertyService {
                             .orElseThrow(() -> new UserNotFoundException(propertyCreateDto.getOwnerEmail()));
                     prop.setOwner(owner);
                     prop.setCreatedAt(LocalDateTime.now());
+                    prop.setStatus(PropertyStatus.PENDING_REQUEST);
                     return prop;
                 })
                 .orElseThrow(IllegalStateException::new);
-
         return propertyRepository.save(property).getId();
     }
 
@@ -113,6 +134,7 @@ public class PropertyServiceImpl implements PropertyService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
         return user.getProperties().stream()
+                .filter(property -> property.getStatus() == PropertyStatus.VERIFIED)
                 .map(property -> modelMapper.map(property, GetPropertyDTO.class))
                 .collect(Collectors.toList());
     }
@@ -121,6 +143,9 @@ public class PropertyServiceImpl implements PropertyService {
     public PropertyDTO getPropertyById(UUID id) {
         Optional<User> requestMaker = userRepository.findByEmail(getAuthenticatedUserEmail(true));
         Property property = propertyRepository.findById(id).orElseThrow(PropertyNotFoundException::new);
+        if (!property.getStatus().equals(PropertyStatus.VERIFIED)) {
+            throw new PropertyNotVerifiedException();
+        }
         if (requestMaker.isPresent()) {
             LOGGER.info("User found with email: {}", requestMaker.get().getEmail());
             User user = requestMaker.get();
@@ -132,6 +157,22 @@ public class PropertyServiceImpl implements PropertyService {
         return convertToDTO(property, false);
     }
 
+    @Override
+    @Transactional
+    public void verifyProperty(UUID propertyId) {
+        Property property = propertyRepository.findById(propertyId).orElseThrow(PropertyNotFoundException::new);
+        property.setStatus(PropertyStatus.VERIFIED);
+        propertyRepository.save(property);
+    }
+
+    @Override
+    @Transactional
+    public void rejectProperty(UUID propertyId) {
+        Property property = propertyRepository.findById(propertyId).orElseThrow(PropertyNotFoundException::new);
+        // Publish the property rejection event
+        applicationEventPublisher.publishEvent(new PropertyRejectionEvent(property));
+        propertyRepository.delete(property);
+    }
 
     @Override
     @Transactional
@@ -143,6 +184,23 @@ public class PropertyServiceImpl implements PropertyService {
             LOGGER.info("Non-admin user {} is deleting property with id: {}", getAuthenticatedUserEmail(false), id);
             propertyRepository.deleteByOwnerEmailAndId(getAuthenticatedUserEmail(false), id).orElseThrow(IllegalAccessRequestException::new);
         }
+    }
+
+    @Override
+    public List<GetPropertyRequestDTO> getPropertyRequests(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+
+        return user.getProperties().stream()
+                .filter(property -> property.getStatus() == PropertyStatus.PENDING_REQUEST)
+                .map(property -> modelMapper.map(property, GetPropertyRequestDTO.class))
+                .map(propertyRequestDTO -> {
+                    Document document = documentRepository.findByUserAndDocumentType(user, DocumentType.OWNERSHIP_DOCUMENT)
+                            .orElseThrow(() -> new IllegalStateException("Proof of ownership document not found"));
+                    propertyRequestDTO.setOwnershipDocument(document.getFilename());
+                    return propertyRequestDTO;
+                })
+                .collect(Collectors.toList());
     }
 
     private String getAuthenticatedUserEmail(boolean isEndpointPublic) {
@@ -176,5 +234,16 @@ public class PropertyServiceImpl implements PropertyService {
             propertyDTO.setOwner(ownerDTO);
         }
         return propertyDTO;
+    }
+
+    @EventListener
+    public void handlePropertyRejectionEvent(PropertyRejectionEvent event) {
+        Property property = event.getProperty();
+        String ownerEmail = property.getOwner().getEmail();
+        String propertyTitle = property.getTitle();
+        UUID propertyId = property.getId();
+
+        MimeMessagePreparator messagePreparator = MailUtil.buildPropertyRejectionEmail(ownerEmail, propertyTitle, propertyId);
+        emailService.sendEmail(messagePreparator);
     }
 }

@@ -13,7 +13,9 @@ import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidUserAuthenticationException;
 import com.house.hunter.exception.InvalidVerificationTokenException;
 import com.house.hunter.exception.MailServiceException;
+import com.house.hunter.exception.NoPropertyRequestFoundException;
 import com.house.hunter.exception.PropertyAlreadyExistsException;
+import com.house.hunter.exception.PropertyNotVerifiedException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
 import com.house.hunter.model.dto.error.ErrorDto;
@@ -209,8 +211,21 @@ public final class ControllerAdvice {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorDto> handleValidationException(IllegalStateException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(NoPropertyRequestFoundException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(NoPropertyRequestFoundException ex) {
+        final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
+        return ResponseEntity.status(error.getStatus()).body(error);
+    }
+
+    @ExceptionHandler(PropertyNotVerifiedException.class)
+    public ResponseEntity<ErrorDto> handleValidationException(PropertyNotVerifiedException ex) {
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), List.of(ex.getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
     }

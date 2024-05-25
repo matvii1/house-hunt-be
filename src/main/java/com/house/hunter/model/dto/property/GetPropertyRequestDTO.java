@@ -1,19 +1,12 @@
 package com.house.hunter.model.dto.property;
 
-import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 
 import java.util.Date;
 import java.util.UUID;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class GetPropertyDTO {
+@Data
+public class GetPropertyRequestDTO {
     private UUID id;
     private String title;
     private String address;
@@ -29,4 +22,5 @@ public class GetPropertyDTO {
     private String ownerEmail;
     private String district;
     private String status;
+    private String ownershipDocument;
 }

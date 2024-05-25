@@ -1,8 +1,8 @@
 package com.house.hunter.service;
 
-import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.GetAllUsersResponse;
+import com.house.hunter.model.dto.user.RequestFormDTO;
 import com.house.hunter.model.dto.user.UserGetResponse;
 import com.house.hunter.model.dto.user.UserRegistrationDto;
 import org.springframework.core.io.Resource;
@@ -55,6 +55,8 @@ public interface UserService {
     void markUserAsNotVerified(String email);
 
     void submitRequest(RequestFormDTO requestFormDTO);
+
+    UUID uploadOwnershipDocument(MultipartFile file, UUID propertyId);
 
 }
 

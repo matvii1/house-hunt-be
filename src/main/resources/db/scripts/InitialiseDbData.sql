@@ -3,6 +3,20 @@
 INSERT INTO roles (name) VALUES ('ADMIN');
 INSERT INTO roles (name) VALUES ('LANDLORD');
 INSERT INTO roles (name) VALUES ('TENANT');
+-- Insert users
+INSERT INTO app_user (id, name, surname, email, phone_number, password, role, account_status, verification_status)
+VALUES
+    ('123e4567-e89b-12d3-a456-426614174315', 'John', 'Doe', 'admin@admin.com', '+1234567890', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'ADMIN', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174921', 'Jane', 'Smith', 'landlord@landlord.com', '+0987654321', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614178002', 'Mike', 'Johnson', 'tenant@tenant.com', '+1111111111', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174005', 'Mike', 'Johnson', 'landlord2@landlord.com', '+1111111191', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174009', 'Emily', 'Brown', 'landlord3@landlord.com', '+2222222222', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174012', 'David', 'Wilson', 'landlord4@landlord.com', '+3333333333', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174013', 'Sarah', 'Taylor', 'landlord5@landlord.com', '+4444444444', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174014', 'Michael', 'Anderson', 'tenant1@tenant.com', '+5555555555', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174015', 'Emma', 'Thomas', 'tenant2@tenant.com', '+6666666666', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174016', 'Daniel', 'Jackson', 'tenant3@tenant.com', '+7777777777', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED'),
+    ('123e4567-e89b-12d3-a456-426614174019', 'Olivia', 'White', 'tenant4@tenant.com', '+8888888888', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED');
 -- Insert properties
 INSERT INTO properties (id, title, address, price, square_meters, description, is_furnished, number_of_rooms, floor_number, available_from, ad_type, apartment_type, owner_id, district, created_at)
 VALUES
@@ -88,21 +102,9 @@ VALUES
     ('123e4567-e89b-12d3-a456-426614174180', 'Spacious Duplex', '753 Maple St', 4500.00, 280, 'A spacious duplex with a home office and gym.', 'UNFURNISHED', 4, 0, '2023-09-15', 'SALE', 'FOUR_KK', (SELECT id FROM app_user WHERE email = 'landlord@landlord.com'),'PRAGUE 1', CURRENT_DATE + INTERVAL '1 day' * FLOOR(random() * 7)),
     ('123e4567-e89b-12d3-a456-426614174181', 'Cozy Studio', '951 Pine Ave', 850.00, 40, 'A cozy studio with a loft bed and storage stairs.', 'FURNISHED', 1, 5, '2023-07-01', 'RENTAL', 'ONE_KK', (SELECT id FROM app_user WHERE email = 'landlord2@landlord.com'), 'PRAGUE 2',CURRENT_DATE + INTERVAL '1 day' * FLOOR(random() * 7)),
     ('123e4567-e89b-12d3-a456-426614174182', 'Elegant Condo', '357 Cedar Rd', 3200.00, 180, 'An elegant condo with a formal dining room and den.', 'SEMI_FURNISHED', 3, 9, '2023-08-01', 'SALE', 'THREE_KK', (SELECT id FROM app_user WHERE email = 'landlord3@landlord.com'),'PRAGUE 10', CURRENT_DATE + INTERVAL '1 day' * FLOOR(random() * 7));
+UPDATE properties SET status = 'VERIFIED' WHERE status IS NULL OR status != 'VERIFIED';
 
--- Insert users
-INSERT INTO app_user (id, name, surname, email, phone_number, password, role, account_status, verification_status)
-VALUES
-  ('123e4567-e89b-12d3-a456-426614174315', 'John', 'Doe', 'admin@admin.com', '+1234567890', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'ADMIN', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174921', 'Jane', 'Smith', 'landlord@landlord.com', '+0987654321', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614178002', 'Mike', 'Johnson', 'tenant@tenant.com', '+1111111111', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174005', 'Mike', 'Johnson', 'landlord2@landlord.com', '+1111111191', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174009', 'Emily', 'Brown', 'landlord3@landlord.com', '+2222222222', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174012', 'David', 'Wilson', 'landlord4@landlord.com', '+3333333333', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174013', 'Sarah', 'Taylor', 'landlord5@landlord.com', '+4444444444', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'LANDLORD', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174014', 'Michael', 'Anderson', 'tenant1@tenant.com', '+5555555555', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174015', 'Emma', 'Thomas', 'tenant2@tenant.com', '+6666666666', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174016', 'Daniel', 'Jackson', 'tenant3@tenant.com', '+7777777777', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED'),
-('123e4567-e89b-12d3-a456-426614174019', 'Olivia', 'White', 'tenant4@tenant.com', '+8888888888', '$2a$10$peVWSM29zeq95fC5MpvYg.mnSPwUy.CyyxNZ452TcILGezbZraQKS', 'TENANT', 'ACTIVE', 'VERIFIED');
+
 INSERT INTO images (id, created_at, file_name, property_id) VALUES
                                                                 ('21950b41-416b-4b4a-9c4e-077d83fc913f', '2024-05-18 15:38:03.626909', '874ff1b2-9ee3-47a3-805d-6bc2fe21e4a7_9_kitchen.jpg', '123e4567-e89b-12d3-a456-426614174101'),
                                                                 ('c1584fad-b0d9-4f45-9096-7ab28ce79400', '2024-05-18 15:38:03.630439', '269a95fc-885a-451b-b795-b8e7a744feb2_9_frontal.jpg', '123e4567-e89b-12d3-a456-426614174101'),
@@ -252,13 +254,6 @@ INSERT INTO images (id, created_at, file_name, property_id) VALUES
                                                                 ('012cfe43-04c4-497f-83d7-7b36b78a7ed0', '2024-05-18 15:44:28.612632', 'bf8ae8d0-f1cf-4572-8831-99487993bd1a_518_kitchen.jpg', '123e4567-e89b-12d3-a456-426614174158'),
                                                                 ('4d5432fe-507b-442a-a18d-81f62601eac5', '2024-05-18 15:44:30.488763', '0f980956-1d59-44f9-9be9-c8418f163322_491_bedroom.jpg', '123e4567-e89b-12d3-a456-426614174159'),
                                                                 ('637856e2-dad6-438c-9a2e-3f6da31cb3e2', '2024-05-18 15:44:30.489745', 'c87d5cac-3e11-4119-8901-56f0fccb9bc7_518_kitchen.jpg', '123e4567-e89b-12d3-a456-426614174159');
-
--- Insert images
-INSERT INTO images (id, property_id, file_name)
-VALUES
-    ('d1262906-b628-4639-b965-c1d8524079e2', '123e4567-e89b-12d3-a456-426614174100', '383f5705-7fe9-4c60-8033-64ca5aacbbe1_houses_and_land-5bfc3326c9e77c0051812eb3.jpg'),
-    ('f3b32b44-8ea6-4b45-be61-747e8bc321db', '123e4567-e89b-12d3-a456-426614174100', '5566a85b-4fae-4e3c-bf4d-9099bedb4b96_images.jpeg'),
-    ('42dee11c-83d5-4d98-a932-9aaa05c1a9d0', '123e4567-e89b-12d3-a456-426614174100', '03b6657e-64fc-4489-b4ed-0cd8f8102009_pexels-binyaminmellish-186077.jpg');
 
 -- Insert document
 INSERT INTO document (id, user_id, document_type, file_name)

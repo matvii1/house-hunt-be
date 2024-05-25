@@ -75,7 +75,6 @@ public class PropertyController {
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     public List<GetPropertyDTO> getProperties(@PathVariable String email) {
         return propertyService.getProperties(email);
-
     }
 
     @PutMapping("/{id}")
@@ -140,9 +139,37 @@ public class PropertyController {
     @DeleteMapping("/{propertyId}/images")
     @Operation(summary = "Delete all images of a property")
     @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteImages(@PathVariable UUID propertyId) throws IOException {
         imageService.deleteImages(propertyId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @PutMapping("/admin/verify/{propertyId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Verify property as admin")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> verifyProperty(@PathVariable UUID propertyId) {
+        propertyService.verifyProperty(propertyId);
+        return ResponseEntity.ok().build();
+    }
+    @PutMapping("/admin/reject/{propertyId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Reject property as admin")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<Void> rejectProperty(@PathVariable UUID propertyId) {
+        propertyService.rejectProperty(propertyId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/property-requests/{email}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get property requests")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity getPropertyRequests(@PathVariable String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(propertyService.getPropertyRequests(email));
+
+    }
+
 }
 

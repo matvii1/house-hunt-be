@@ -1,6 +1,7 @@
 package com.house.hunter.repository;
 
 import com.house.hunter.constant.AdType;
+import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.model.entity.Property;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -25,4 +26,10 @@ public interface PropertyRepository extends JpaRepository<Property, UUID>, JpaSp
     Optional<List<Property>> findByOwnerId(UUID id);
 
     long countByAdType(AdType adType);
+
+    long countByStatus(PropertyStatus status);
+
+
+    long countByAdTypeAndStatus(AdType adType, PropertyStatus status);
+
 }

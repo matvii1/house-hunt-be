@@ -8,6 +8,7 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.UUID;
 
 public class MailUtil {
     private static final String LOGO_PATH = "static/logo.png";
@@ -131,6 +132,30 @@ public class MailUtil {
                     "<p>This is a reminder that your data will be deleted in " + reminderDays + " days in accordance with our data retention policy.</p>" +
                     "<p>If you wish to extend the retention period, please click on the following link:</p>" +
                     "<p><a href='" + HOST + "/api/v1/user/extend-retention?token=" + encodedToken + "'>Extend Data Retention</a></p>" +
+                    "<p>Thank you for using House Hunter.</p>" +
+                    "</body></html>";
+
+            messageHelper.setText(message, true);
+            messageHelper.addInline("logo", new ClassPathResource(LOGO_PATH));
+        };
+    }
+
+    public static MimeMessagePreparator buildPropertyRejectionEmail(String recipientEmail, String propertyTitle, UUID propertyId) {
+        return mimeMessage -> {
+            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
+            messageHelper.setTo(recipientEmail);
+            messageHelper.setSubject("Property Advertisement Rejected");
+
+            String message = "<html><body>" +
+                    "<img src='cid:logo' alt='House Hunter Logo' style='width: 200px; height: auto;'><br><br>" +
+                    "<p>Dear property owner,</p>" +
+                    "<p>We regret to inform you that your advertisement for the property with the following details has been rejected by our admins:</p>" +
+                    "<ul>" +
+                    "<li>Property Title: " + propertyTitle + "</li>" +
+                    "<li>Property ID: " + propertyId + "</li>" +
+                    "</ul>" +
+                    "<p>Please verify the validity of the information provided and try again with a valid document by creating another property.</p>" +
+                    "<p>If you have any questions or concerns, please don't hesitate to contact our support team.</p>" +
                     "<p>Thank you for using House Hunter.</p>" +
                     "</body></html>";
 

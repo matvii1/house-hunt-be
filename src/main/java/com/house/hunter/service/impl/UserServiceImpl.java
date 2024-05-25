@@ -1,6 +1,7 @@
 package com.house.hunter.service.impl;
 
 import com.house.hunter.constant.DocumentType;
+import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserRole;
 import com.house.hunter.constant.UserVerificationStatus;
@@ -123,6 +124,7 @@ public class UserServiceImpl implements UserService {
                         if (userRepository.findByEmail(requestMakerEmail).get().getVerificationStatus() != UserVerificationStatus.VERIFIED) {
                             user.setPhoneNumber(null);
                         }
+                        user.setProperties(user.getProperties().stream().filter(property -> property.getStatus().equals(PropertyStatus.VERIFIED)).toList());
                         return modelMapper.map(user, UserGetResponse.class);
                     })
                     .orElseThrow(() -> new UserNotFoundException(email));
@@ -137,7 +139,7 @@ public class UserServiceImpl implements UserService {
                 .map(user -> {
                     LOGGER.info("User found: {}", user.getEmail());
                     UserGetResponse response = modelMapper.map(user, UserGetResponse.class);
-                    List<Property> properties = new ArrayList<>(user.getProperties());
+                    List<Property> properties = new ArrayList<>(user.getProperties().stream().filter(property -> property.getStatus().equals(PropertyStatus.VERIFIED)).toList());
                     List<Property> propertyDTOs = properties.stream()
                             .peek(property -> {
                                 property.setOwner(null); // Exclude the owner field
@@ -197,6 +199,7 @@ public class UserServiceImpl implements UserService {
     public List<String> getUserDocuments(String email) {
         List<Document> documents = documentRepository.findDocumentsByUserEmail(email).orElseThrow(() -> new UserNotFoundException(email));
         return documents.stream()
+                .filter(document -> !document.getDocumentType().equals(DocumentType.OWNERSHIP_DOCUMENT))
                 .map(Document::getFilename)
                 .toList();
     }
@@ -231,7 +234,37 @@ public class UserServiceImpl implements UserService {
                 return documentRepository.save(document).getId();
             } else {
                 // If the document doesn't exist, create a new one and save it
-                Document document = new Document(null, documentName, DocumentType.valueOf(documentType), LocalDateTime.now(), user);
+                Document document = new Document(null, documentName, DocumentType.valueOf(documentType), LocalDateTime.now(), user, null);
+                return documentRepository.save(document).getId();
+            }
+        } catch (IOException e) {
+            throw new FileOperationException(e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public UUID uploadOwnershipDocument(MultipartFile file, UUID propertyId) {
+        User user = getAuthenticatedUser();
+        try {
+            Property property = user.getProperties().stream()
+                    .filter(p -> p.getId().equals(propertyId))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalRequestException("Property not found with id: " + propertyId + " for user: " + user.getEmail()));
+            String documentName = documentUtil.saveDocumentToStorage(documentDirectory, file);
+
+            // Check if a document with the same user and documentType already exists
+            Optional<Document> existingDocument = documentRepository.findByUserAndDocumentType(user, DocumentType.valueOf("OWNERSHIP_DOCUMENT"));
+
+            if (existingDocument.isPresent()) {
+                LOGGER.info("Document already exists for user: {}", user.getEmail());
+                // If the document exists, update its filename and save it
+                Document document = existingDocument.get();
+                document.setFilename(documentName);
+                return documentRepository.save(document).getId();
+            } else {
+                // If the document doesn't exist, create a new one and save it
+                Document document = new Document(null, documentName, DocumentType.valueOf("OWNERSHIP_DOCUMENT"), LocalDateTime.now(), user, property);
                 return documentRepository.save(document).getId();
             }
         } catch (IOException e) {
