@@ -244,11 +244,19 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteDocument(String documentName) {
         try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String requestMakerEmail = authentication.getName();
             Document document = documentRepository.findByFilename(documentName)
                     .orElseThrow(DocumentNotFoundException::new);
-            documentRepository.delete(document);
-            LOGGER.info("Document deleted: {}", documentName);
-            documentUtil.deleteDocument(documentDirectory, documentName);
+            String requestMaker = document.getUser().getEmail();
+            // Check if the currently authenticated user is an admin or the same user being retrieved
+            if (hasRole(authentication, UserRole.ADMIN) || requestMakerEmail.equals(requestMaker)) {
+                documentRepository.delete(document);
+                LOGGER.info("Document deleted: {}", documentName);
+                documentUtil.deleteDocument(documentDirectory, documentName);
+            } else {
+                throw new IllegalRequestException("You are not authorized to delete document of this user");
+            }
         } catch (IOException e) {
             throw new FileOperationException(e.getMessage());
         }

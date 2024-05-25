@@ -143,7 +143,7 @@ public class UserController {
     @DeleteMapping("/documents/{documentName}")
     @Operation(summary = "Delete document")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN, LANDLORD, TENANT')")
     public ResponseEntity<Void> deleteDocument(@PathVariable(value = "documentName") @NotEmpty String documentName) {
         userService.deleteDocument(documentName);
         return ResponseEntity.noContent().build();
