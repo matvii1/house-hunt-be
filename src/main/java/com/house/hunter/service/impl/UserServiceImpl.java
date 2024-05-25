@@ -5,6 +5,9 @@ import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserRole;
 import com.house.hunter.constant.UserVerificationStatus;
+import com.house.hunter.event.UserActivationEvent;
+import com.house.hunter.event.UserBlockedEvent;
+import com.house.hunter.event.UserNotVerifiedEvent;
 import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
 import com.house.hunter.exception.IllegalRequestException;
@@ -36,6 +39,8 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -61,14 +66,18 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final ModelMapper modelMapper;
     private final String documentDirectory;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public UserServiceImpl(UserRepository userRepository, DocumentRepository documentRepository, ModelMapper modelMapper, @Value("${documents.directory}") String documentDirectory, ConfirmationTokenRepository confirmationTokenRepository, EmailService emailService) {
+
+    public UserServiceImpl(UserRepository userRepository, DocumentRepository documentRepository, ModelMapper modelMapper, @Value("${documents.directory}") String documentDirectory,
+                           ConfirmationTokenRepository confirmationTokenRepository, EmailService emailService, ApplicationEventPublisher applicationEventPublisher) {
         this.userRepository = userRepository;
         this.documentRepository = documentRepository;
         this.modelMapper = modelMapper;
         this.documentDirectory = documentDirectory;
         this.confirmationTokenRepository = confirmationTokenRepository;
         this.emailService = emailService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(UserServiceImpl.class);
@@ -309,6 +318,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
         user.setAccountStatus(UserAccountStatus.ACTIVE);
         LOGGER.info("User account activated: {}", user.getEmail());
+        applicationEventPublisher.publishEvent(new UserActivationEvent(user));
         userRepository.save(user);
     }
 
@@ -390,6 +400,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalRequestException("Admin user cannot be blocked");
         }
         user.setAccountStatus(UserAccountStatus.BLOCKED);
+        applicationEventPublisher.publishEvent(new UserBlockedEvent(user));
         userRepository.save(user);
         LOGGER.info("User account blocked: {}", user.getEmail());
     }
@@ -401,6 +412,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
 
         user.setVerificationStatus(UserVerificationStatus.NOT_VERIFIED);
+        applicationEventPublisher.publishEvent(new UserNotVerifiedEvent(user));
         userRepository.save(user);
     }
 
@@ -443,6 +455,33 @@ public class UserServiceImpl implements UserService {
     private boolean hasRole(Authentication authentication, UserRole role) {
         return authentication.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role.name()));
+    }
+
+    @EventListener
+    public void handleUserActivationEvent(UserActivationEvent event) {
+        User user = event.getUser();
+        String userEmail = user.getEmail();
+
+        MimeMessagePreparator messagePreparator = MailUtil.buildUserActivationEmail(userEmail);
+        emailService.sendEmail(messagePreparator);
+    }
+
+    @EventListener
+    public void handleUserNotVerifiedEvent(UserNotVerifiedEvent event) {
+        User user = event.getUser();
+        String userEmail = user.getEmail();
+
+        MimeMessagePreparator messagePreparator = MailUtil.buildUserNotVerifiedEmail(userEmail);
+        emailService.sendEmail(messagePreparator);
+    }
+
+    @EventListener
+    public void handleUserBlockedEvent(UserBlockedEvent event) {
+        User user = event.getUser();
+        String userEmail = user.getEmail();
+
+        MimeMessagePreparator messagePreparator = MailUtil.buildUserBlockedEmail(userEmail);
+        emailService.sendEmail(messagePreparator);
     }
 
 

@@ -5,6 +5,7 @@ import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.event.PropertyRejectionEvent;
+import com.house.hunter.event.PropertyVerificationEvent;
 import com.house.hunter.exception.IllegalAccessRequestException;
 import com.house.hunter.exception.PropertyAlreadyExistsException;
 import com.house.hunter.exception.PropertyNotFoundException;
@@ -162,6 +163,7 @@ public class PropertyServiceImpl implements PropertyService {
     public void verifyProperty(UUID propertyId) {
         Property property = propertyRepository.findById(propertyId).orElseThrow(PropertyNotFoundException::new);
         property.setStatus(PropertyStatus.VERIFIED);
+        applicationEventPublisher.publishEvent(new PropertyVerificationEvent(property));
         propertyRepository.save(property);
     }
 
@@ -246,4 +248,16 @@ public class PropertyServiceImpl implements PropertyService {
         MimeMessagePreparator messagePreparator = MailUtil.buildPropertyRejectionEmail(ownerEmail, propertyTitle, propertyId);
         emailService.sendEmail(messagePreparator);
     }
+
+    @EventListener
+    public void handlePropertyVerificationEvent(PropertyVerificationEvent event) {
+        Property property = event.getProperty();
+        String ownerEmail = property.getOwner().getEmail();
+        String propertyTitle = property.getTitle();
+        UUID propertyId = property.getId();
+
+        MimeMessagePreparator messagePreparator = MailUtil.buildPropertyVerificationEmail(ownerEmail, propertyTitle, propertyId);
+        emailService.sendEmail(messagePreparator);
+    }
+
 }
