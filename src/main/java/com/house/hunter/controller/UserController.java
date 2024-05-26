@@ -141,7 +141,7 @@ public class UserController {
 
     @PostMapping(path = "/documents/ownership/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload ownership document as landlord")
-    @PreAuthorize("hasAnyRole('LANDLORD')")
+    @PreAuthorize("hasRole('LANDLORD')")
     @ResponseStatus(HttpStatus.CREATED)
     public UUID uploadOwnershipDocument(
                                         @RequestParam UUID propertyId,

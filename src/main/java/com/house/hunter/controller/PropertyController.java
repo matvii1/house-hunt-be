@@ -163,7 +163,7 @@ public class PropertyController {
     }
 
     @GetMapping("/property-requests/{email}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','LANDLORD')")
     @Operation(summary = "Get property requests")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity getPropertyRequests(@PathVariable String email) {
