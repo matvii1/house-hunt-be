@@ -53,5 +53,6 @@ public class Document {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "property_id")
+    @JsonIgnoreProperties({"documents"})
     private Property property;
 }

@@ -15,8 +15,10 @@ import com.house.hunter.exception.InvalidDocumentTypeException;
 import com.house.hunter.exception.InvalidTokenException;
 import com.house.hunter.exception.InvalidVerificationTokenException;
 import com.house.hunter.exception.MailServiceException;
+import com.house.hunter.exception.PropertyNotFoundException;
 import com.house.hunter.exception.UserAlreadyExistsException;
 import com.house.hunter.exception.UserNotFoundException;
+import com.house.hunter.model.dto.property.GetPropertyDTO;
 import com.house.hunter.model.dto.user.CreateAdminDTO;
 import com.house.hunter.model.dto.user.GetAllUsersResponse;
 import com.house.hunter.model.dto.user.RequestFormDTO;
@@ -57,6 +59,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -149,15 +152,28 @@ public class UserServiceImpl implements UserService {
                     LOGGER.info("User found: {}", user.getEmail());
                     UserGetResponse response = modelMapper.map(user, UserGetResponse.class);
                     List<Property> properties = new ArrayList<>(user.getProperties().stream().filter(property -> property.getStatus().equals(PropertyStatus.VERIFIED)).toList());
-                    List<Property> propertyDTOs = properties.stream()
-                            .peek(property -> {
-                                property.setOwner(null); // Exclude the owner field
-                            })
+                    List<GetPropertyDTO> propertyDTOs = properties.stream()
+                            .map(property -> modelMapper.map(property, GetPropertyDTO.class))
                             .toList();
                     response.setProperties(propertyDTOs);
                     return response;
                 })
                 .orElseThrow(() -> new UserNotFoundException(uuid.toString()));
+    }
+
+    @Override
+    public List<String> getUserDocumentsByProperty(UUID userId, UUID propertyId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with Email: " + userId));
+
+        Property property = user.getProperties().stream()
+                .filter(p -> p.getId().equals(propertyId))
+                .findFirst()
+                .orElseThrow(() -> new PropertyNotFoundException("Property not found with ID: " + propertyId));
+
+        return property.getDocuments().stream()
+                .map(Document::getFilename)
+                .collect(Collectors.toList());
     }
 
 
@@ -206,12 +222,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<String> getUserDocuments(String email) {
-        List<Document> documents = documentRepository.findDocumentsByUserEmail(email).orElseThrow(() -> new UserNotFoundException(email));
-        return documents.stream()
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+
+        return user.getDocuments().stream()
                 .filter(document -> !document.getDocumentType().equals(DocumentType.OWNERSHIP_DOCUMENT))
                 .map(Document::getFilename)
-                .toList();
+                .collect(Collectors.toList());
     }
+
 
     @Override
     public Resource downloadFile(String filename) {

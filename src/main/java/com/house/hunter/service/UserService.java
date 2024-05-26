@@ -58,5 +58,7 @@ public interface UserService {
 
     UUID uploadOwnershipDocument(MultipartFile file, UUID propertyId);
 
+    List<String> getUserDocumentsByProperty(UUID userId, UUID propertyId);
+
 }
 

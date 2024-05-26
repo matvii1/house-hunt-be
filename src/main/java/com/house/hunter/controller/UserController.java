@@ -144,13 +144,13 @@ public class UserController {
     @PreAuthorize("hasRole('LANDLORD')")
     @ResponseStatus(HttpStatus.CREATED)
     public UUID uploadOwnershipDocument(
-                                        @RequestParam UUID propertyId,
-                                        @Parameter(
-                                                description = "Document file",
-                                                required = true,
-                                                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-                                        )
-                                        @RequestPart("file") MultipartFile file) {
+            @RequestParam UUID propertyId,
+            @Parameter(
+                    description = "Document file",
+                    required = true,
+                    content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+            )
+            @RequestPart("file") MultipartFile file) {
         return userService.uploadOwnershipDocument(file, propertyId);
     }
 
@@ -247,6 +247,17 @@ public class UserController {
     public ResponseEntity<String> submitRequest(@Valid @RequestBody RequestFormDTO requestFormDTO) {
         userService.submitRequest(requestFormDTO);
         return ResponseEntity.status(HttpStatus.OK).body("Request form is submitted successfully");
+    }
+
+    @GetMapping("/documents/{userId}/property/{propertyId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Get user documents by property")
+    public ResponseEntity<List<String>> getUserDocumentsByProperty(
+            @PathVariable UUID userId,
+            @PathVariable UUID propertyId
+    ) {
+        List<String> documentFilenames = userService.getUserDocumentsByProperty(userId, propertyId);
+        return ResponseEntity.ok(documentFilenames);
     }
 
 }
