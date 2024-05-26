@@ -29,4 +29,5 @@ public class GetPropertyDTO {
     private String ownerEmail;
     private String district;
     private String status;
+    private String ownershipDocument;
 }
