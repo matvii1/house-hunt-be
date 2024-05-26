@@ -230,6 +230,7 @@ public class PropertyServiceImpl implements PropertyService {
             // Check if the phone number should be included
             if (!includeOwner) {
                 // Set the phone number to null
+                propertyDTO.setOwner(null);
                 return propertyDTO;
             }
             UserDTO ownerDTO = modelMapper.map(owner, UserDTO.class);
