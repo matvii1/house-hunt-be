@@ -3,10 +3,12 @@ package com.house.hunter.service.impl;
 import com.house.hunter.constant.DocumentType;
 import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.constant.UserAccountStatus;
+import com.house.hunter.constant.UserRole;
 import com.house.hunter.constant.UserVerificationStatus;
 import com.house.hunter.event.PropertyRejectionEvent;
 import com.house.hunter.event.PropertyVerificationEvent;
 import com.house.hunter.exception.IllegalAccessRequestException;
+import com.house.hunter.exception.InvalidAccountStatusException;
 import com.house.hunter.exception.PropertyAlreadyExistsException;
 import com.house.hunter.exception.PropertyNotFoundException;
 import com.house.hunter.exception.PropertyNotVerifiedException;
@@ -77,7 +79,13 @@ public class PropertyServiceImpl implements PropertyService {
         if (!isAdmin() && !propertyCreateDto.getOwnerEmail().equals(getAuthenticatedUserEmail(false))) {
             throw new IllegalAccessRequestException();
         }
-
+        String email = getAuthenticatedUserEmail(false);
+        LOGGER.info("User {} is creating a property request", email);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        if (!user.getRole().equals(UserRole.ADMIN) && user.getVerificationStatus() != UserVerificationStatus.VERIFIED) {
+            throw new InvalidAccountStatusException();
+        }
         // Check if a property with the same title already exists
         if (propertyRepository.existsByTitle(propertyCreateDto.getTitle())) {
             throw new PropertyAlreadyExistsException();
