@@ -252,12 +252,12 @@ public class UserController {
     @GetMapping("/documents/{userId}/property/{propertyId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get user documents by property")
-    public ResponseEntity<List<String>> getUserDocumentsByProperty(
+    public ResponseEntity<String> getUserDocumentsByProperty(
             @PathVariable UUID userId,
             @PathVariable UUID propertyId
     ) {
-        List<String> documentFilenames = userService.getUserDocumentsByProperty(userId, propertyId);
-        return ResponseEntity.ok(documentFilenames);
+        String documentFilename = userService.getUserDocumentsByProperty(userId, propertyId);
+        return ResponseEntity.ok(documentFilename);
     }
 
 }

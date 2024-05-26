@@ -30,6 +30,7 @@ import com.house.hunter.model.entity.Property;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.ConfirmationTokenRepository;
 import com.house.hunter.repository.DocumentRepository;
+import com.house.hunter.repository.PropertyRepository;
 import com.house.hunter.repository.UserRepository;
 import com.house.hunter.service.EmailService;
 import com.house.hunter.service.UserService;
@@ -64,6 +65,7 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PropertyRepository propertyRepository;
     private final DocumentRepository documentRepository;
     private final ConfirmationTokenRepository confirmationTokenRepository;
     private final EmailService emailService;
@@ -72,10 +74,11 @@ public class UserServiceImpl implements UserService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
 
-    public UserServiceImpl(UserRepository userRepository, DocumentRepository documentRepository, ModelMapper modelMapper, @Value("${documents.directory}") String documentDirectory,
+    public UserServiceImpl(UserRepository userRepository, PropertyRepository propertyRepository, DocumentRepository documentRepository, ModelMapper modelMapper, @Value("${documents.directory}") String documentDirectory,
                            ConfirmationTokenRepository confirmationTokenRepository, EmailService emailService, ApplicationEventPublisher applicationEventPublisher) {
         this.userRepository = userRepository;
         this.documentRepository = documentRepository;
+        this.propertyRepository = propertyRepository;
         this.modelMapper = modelMapper;
         this.documentDirectory = documentDirectory;
         this.confirmationTokenRepository = confirmationTokenRepository;
@@ -162,7 +165,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<String> getUserDocumentsByProperty(UUID userId, UUID propertyId) {
+    public String getUserDocumentsByProperty(UUID userId, UUID propertyId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with Email: " + userId));
 
@@ -171,9 +174,7 @@ public class UserServiceImpl implements UserService {
                 .findFirst()
                 .orElseThrow(() -> new PropertyNotFoundException("Property not found with ID: " + propertyId));
 
-        return property.getDocuments().stream()
-                .map(Document::getFilename)
-                .collect(Collectors.toList());
+        return property.getDocument().getFilename();
     }
 
 
@@ -275,31 +276,31 @@ public class UserServiceImpl implements UserService {
     public UUID uploadOwnershipDocument(MultipartFile file, UUID propertyId) {
         User user = getAuthenticatedUser();
         try {
-            Property property = user.getProperties().stream()
-                    .filter(p -> p.getId().equals(propertyId))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalRequestException("Property not found with id: " + propertyId + " for user: " + user.getEmail()));
-            String documentName = documentUtil.saveDocumentToStorage(documentDirectory, file);
+            Property property = propertyRepository.findById(propertyId)
+                    .orElseThrow(() -> new IllegalRequestException("Property not found with id: " + propertyId));
 
-            // Check if a document with the same user and documentType already exists
-            Optional<Document> existingDocument = documentRepository.findByUserAndDocumentType(user, DocumentType.valueOf("OWNERSHIP_DOCUMENT"));
-
-            if (existingDocument.isPresent()) {
-                LOGGER.info("Document already exists for user: {}", user.getEmail());
-                // If the document exists, update its filename and save it
-                Document document = existingDocument.get();
-                document.setFilename(documentName);
-                return documentRepository.save(document).getId();
-            } else {
-                // If the document doesn't exist, create a new one and save it
-                Document document = new Document(null, documentName, DocumentType.valueOf("OWNERSHIP_DOCUMENT"), LocalDateTime.now(), user, property);
-                return documentRepository.save(document).getId();
+            if (!property.getOwner().equals(user)) {
+                throw new IllegalRequestException("User is not the owner of the property");
             }
+
+            Document document = documentRepository.findByPropertyAndDocumentType(property, DocumentType.OWNERSHIP_DOCUMENT)
+                    .orElse(new Document());
+
+            if (document.getId() == null) {
+                String documentName = documentUtil.saveDocumentToStorage(documentDirectory, file);
+                document.setFilename(documentName);
+                document.setDocumentType(DocumentType.OWNERSHIP_DOCUMENT);
+                document.setCreatedAt(LocalDateTime.now());
+                document.setUser(user);
+                document.setProperty(property);
+            }
+
+            Document savedDocument = documentRepository.save(document);
+            return savedDocument.getId();
         } catch (IOException e) {
             throw new FileOperationException(e.getMessage());
         }
     }
-
 
     @Override
     @Transactional

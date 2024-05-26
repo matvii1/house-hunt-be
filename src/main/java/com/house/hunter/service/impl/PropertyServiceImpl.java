@@ -97,6 +97,7 @@ public class PropertyServiceImpl implements PropertyService {
                     User owner = userRepository.findByEmail(propertyCreateDto.getOwnerEmail())
                             .orElseThrow(() -> new UserNotFoundException(propertyCreateDto.getOwnerEmail()));
                     prop.setOwner(owner);
+                    prop.setDocument(null);
                     prop.setCreatedAt(LocalDateTime.now());
                     prop.setStatus(PropertyStatus.PENDING_REQUEST);
                     return prop;
@@ -144,8 +145,14 @@ public class PropertyServiceImpl implements PropertyService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
         return user.getProperties().stream()
                 .filter(property -> property.getStatus() == PropertyStatus.VERIFIED)
-                .map(property -> modelMapper.map(property, GetPropertyDTO.class))
-                .collect(Collectors.toList());
+                .map(property -> {
+                    GetPropertyDTO getPropertyDTO = modelMapper.map(property, GetPropertyDTO.class);
+                    if (property.getDocument() != null) {
+                        getPropertyDTO.setOwnershipDocument(property.getDocument().getFilename());
+                    }
+                    return getPropertyDTO;
+                })
+                .toList();
     }
 
     @Override
