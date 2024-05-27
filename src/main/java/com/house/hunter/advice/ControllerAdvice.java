@@ -166,7 +166,7 @@ public final class ControllerAdvice {
     }
 
 
-/*    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorDto> handleValidationException(DataIntegrityViolationException ex) {
         if (ex.getMessage().contains("violates unique constraint")) {
             final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), "The phone number is either invalid or taken", List.of("The phone number is either invalid or taken"));
@@ -174,7 +174,7 @@ public final class ControllerAdvice {
         }
         final ErrorDto error = new ErrorDto(HttpStatus.BAD_REQUEST.value(), ex.getCause().getMessage(), List.of(ex.getCause().getMessage()));
         return ResponseEntity.status(error.getStatus()).body(error);
-    }*/
+    }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorDto> handleValidationException(IllegalArgumentException ex) {
