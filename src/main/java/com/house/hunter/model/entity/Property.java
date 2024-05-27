@@ -24,10 +24,10 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -83,8 +83,9 @@ public class Property {
     @NotNull(message = "Number of rooms is required")
     private int numberOfRooms;
 
-    @PositiveOrZero(message = "Floor number cannot be negative")
     @NotNull
+    @Min(-10)
+    @Max(100)
     private int floorNumber;
 
     @Temporal(TemporalType.DATE)
@@ -119,5 +120,5 @@ public class Property {
 
     @OneToOne(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnoreProperties({"property"})
-    private Document document =  new Document();
+    private Document document = new Document();
 }

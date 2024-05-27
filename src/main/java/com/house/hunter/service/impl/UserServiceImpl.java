@@ -244,7 +244,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UUID uploadDocument(String documentType, MultipartFile file) {
+    public UUID uploadDocument(String documentType, MultipartFile file) throws IOException {
         if (!DocumentType.contains(documentType)) {
             throw new InvalidDocumentTypeException();
         }
@@ -267,13 +267,14 @@ public class UserServiceImpl implements UserService {
                 return documentRepository.save(document).getId();
             }
         } catch (IOException e) {
+            documentUtil.deleteDocument(documentDirectory, file.getOriginalFilename());
             throw new FileOperationException(e.getMessage());
         }
     }
 
     @Override
     @Transactional
-    public UUID uploadOwnershipDocument(MultipartFile file, UUID propertyId) {
+    public UUID uploadOwnershipDocument(MultipartFile file, UUID propertyId) throws IOException {
         User user = getAuthenticatedUser();
         try {
             Property property = propertyRepository.findById(propertyId)
@@ -298,6 +299,7 @@ public class UserServiceImpl implements UserService {
             Document savedDocument = documentRepository.save(document);
             return savedDocument.getId();
         } catch (IOException e) {
+            documentUtil.deleteDocument(documentDirectory, file.getOriginalFilename());
             throw new FileOperationException(e.getMessage());
         }
     }

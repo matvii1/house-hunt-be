@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -135,7 +136,7 @@ public class UserController {
                                    required = true,
                                    content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
                            )
-                           @RequestPart("file") MultipartFile file) {
+                           @RequestPart("file") MultipartFile file) throws IOException {
         return userService.uploadDocument(documentType, file);
     }
 
@@ -150,7 +151,7 @@ public class UserController {
                     required = true,
                     content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
             )
-            @RequestPart("file") MultipartFile file) {
+            @RequestPart("file") MultipartFile file) throws IOException {
         return userService.uploadOwnershipDocument(file, propertyId);
     }
 
