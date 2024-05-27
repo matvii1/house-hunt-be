@@ -266,7 +266,7 @@ public class UserServiceImpl implements UserService {
                 Document document = new Document(null, documentName, DocumentType.valueOf(documentType), LocalDateTime.now(), user, null);
                 return documentRepository.save(document).getId();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             documentUtil.deleteDocument(documentDirectory, file.getOriginalFilename());
             throw new FileOperationException(e.getMessage());
         }
@@ -276,6 +276,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UUID uploadOwnershipDocument(MultipartFile file, UUID propertyId) throws IOException {
         User user = getAuthenticatedUser();
+        String documentName = null;
         try {
             Property property = propertyRepository.findById(propertyId)
                     .orElseThrow(() -> new IllegalRequestException("Property not found with id: " + propertyId));
@@ -283,23 +284,28 @@ public class UserServiceImpl implements UserService {
             if (!property.getOwner().equals(user)) {
                 throw new IllegalRequestException("User is not the owner of the property");
             }
-
+            // Check if the property already has an ownership document
             Document document = documentRepository.findByPropertyAndDocumentType(property, DocumentType.OWNERSHIP_DOCUMENT)
                     .orElse(new Document());
-
+            // if it is a new document, save it
             if (document.getId() == null) {
-                String documentName = documentUtil.saveDocumentToStorage(documentDirectory, file);
+                documentName = documentUtil.saveDocumentToStorage(documentDirectory, file);
                 document.setFilename(documentName);
                 document.setDocumentType(DocumentType.OWNERSHIP_DOCUMENT);
                 document.setCreatedAt(LocalDateTime.now());
                 document.setUser(user);
                 document.setProperty(property);
+            } else {
+                // if the document already exists, update it
+                documentUtil.deleteDocument(documentDirectory, document.getFilename());
+                // Save the new document
+                documentName = documentUtil.saveDocumentToStorage(documentDirectory, file);
+                document.setFilename(documentName);
             }
-
             Document savedDocument = documentRepository.save(document);
             return savedDocument.getId();
-        } catch (IOException e) {
-            documentUtil.deleteDocument(documentDirectory, file.getOriginalFilename());
+        } catch (Exception e) {
+//            documentUtil.deleteDocument(documentDirectory,documentName, true);
             throw new FileOperationException(e.getMessage());
         }
     }

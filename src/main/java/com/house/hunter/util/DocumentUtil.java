@@ -3,6 +3,8 @@ package com.house.hunter.util;
 import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
 import com.house.hunter.exception.ImageNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +20,7 @@ import java.util.stream.Stream;
 
 public class DocumentUtil {
     private static DocumentUtil INSTANCE;
+    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentUtil.class);
 
     private DocumentUtil() {
     }
@@ -72,12 +75,21 @@ public class DocumentUtil {
     }
 
     public void deleteDocument(String documentDirectory, String filename) throws IOException {
+        deleteDocument(documentDirectory, filename, false);
+    }
+
+    public void deleteDocument(String documentDirectory, String filename, boolean isFailover) throws IOException {
         Path documentPath = Path.of(documentDirectory, filename);
         if (Files.exists(documentPath)) {
             Files.delete(documentPath);
         } else {
+            if (isFailover) {
+                LOGGER.warn("Failed to delete document: {}", filename);
+                return;
+            }
             throw new DocumentNotFoundException("Document not found");
         }
+
     }
 
     private boolean isDocumentDuplicate(String uploadDirectory, MultipartFile document) throws IOException {

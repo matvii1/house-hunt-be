@@ -1,6 +1,5 @@
 package com.house.hunter.service.impl;
 
-import com.house.hunter.constant.DocumentType;
 import com.house.hunter.constant.PropertyStatus;
 import com.house.hunter.constant.UserAccountStatus;
 import com.house.hunter.constant.UserRole;
@@ -20,7 +19,6 @@ import com.house.hunter.model.dto.property.PropertySearchCriteriaDTO;
 import com.house.hunter.model.dto.property.UpdatePropertyDTO;
 import com.house.hunter.model.dto.search.PropertyDTO;
 import com.house.hunter.model.dto.search.UserDTO;
-import com.house.hunter.model.entity.Document;
 import com.house.hunter.model.entity.Property;
 import com.house.hunter.model.entity.User;
 import com.house.hunter.repository.DocumentRepository;
@@ -44,10 +42,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class PropertyServiceImpl implements PropertyService {
@@ -208,16 +206,20 @@ public class PropertyServiceImpl implements PropertyService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
 
-        return user.getProperties().stream()
-                .filter(property -> property.getStatus() == PropertyStatus.PENDING_REQUEST)
-                .map(property -> modelMapper.map(property, GetPropertyRequestDTO.class))
-                .map(propertyRequestDTO -> {
-                    Document document = documentRepository.findByUserAndDocumentType(user, DocumentType.OWNERSHIP_DOCUMENT)
-                            .orElseThrow(() -> new IllegalStateException("Proof of ownership document not found"));
-                    propertyRequestDTO.setOwnershipDocument(document.getFilename());
-                    return propertyRequestDTO;
-                })
-                .collect(Collectors.toList());
+        List<Property> properties = user.getProperties().stream()
+                .filter(property -> property.getStatus() == PropertyStatus.PENDING_REQUEST).toList();
+        List<GetPropertyRequestDTO> getPropertyRequestDTOs = new ArrayList<>();
+        for (var property : properties) {
+            // Convert the property to a GetPropertyRequestDTO object (modelMapper is a ModelMapper object
+            GetPropertyRequestDTO getPropertyRequestDTO = modelMapper.map(property, GetPropertyRequestDTO.class);
+            if (property.getDocument() != null) {
+                getPropertyRequestDTO.setOwnershipDocument(property.getDocument().getFilename());
+            } else {
+                continue;
+            }
+            getPropertyRequestDTOs.add(getPropertyRequestDTO);
+        }
+        return getPropertyRequestDTOs;
     }
 
     private String getAuthenticatedUserEmail(boolean isEndpointPublic) {
