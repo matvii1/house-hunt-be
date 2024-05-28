@@ -21,7 +21,6 @@ import com.house.hunter.model.dto.search.PropertyDTO;
 import com.house.hunter.model.dto.search.UserDTO;
 import com.house.hunter.model.entity.Property;
 import com.house.hunter.model.entity.User;
-import com.house.hunter.repository.DocumentRepository;
 import com.house.hunter.repository.PropertyRepository;
 import com.house.hunter.repository.UserRepository;
 import com.house.hunter.security.CustomUserDetails;
@@ -56,16 +55,14 @@ public class PropertyServiceImpl implements PropertyService {
     private final ModelMapper modelMapper;
     private final EmailService emailService;
 
-    private final DocumentRepository documentRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    public PropertyServiceImpl(PropertyRepository propertyRepository, UserRepository userRepository, DocumentRepository documentRepository,
+    public PropertyServiceImpl(PropertyRepository propertyRepository, UserRepository userRepository,
                                ModelMapper modelMapper, ApplicationEventPublisher applicationEventPublisher,
                                EmailService emailService) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
-        this.documentRepository = documentRepository;
         this.modelMapper = modelMapper;
         this.applicationEventPublisher = applicationEventPublisher;
         this.emailService = emailService;
