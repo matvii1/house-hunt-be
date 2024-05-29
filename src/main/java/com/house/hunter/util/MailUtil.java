@@ -246,7 +246,7 @@ public class MailUtil {
 
     private static String generateDataRetentionToken(String email) {
         // Generate a unique token based on the user's email and current timestamp
-        String token = email + "_" + System.currentTimeMillis();
+        final String token = email + "_" + System.currentTimeMillis();
         return token;
     }
 

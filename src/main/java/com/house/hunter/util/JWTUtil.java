@@ -34,7 +34,7 @@ public class JWTUtil {
     private static final String TOKEN_PREFIX = "Bearer ";
 
     public JWTUtil() {
-        this.secretKey = SecretKeyGenerator.readEncryptedSecretFromEnv();
+        this.secretKey = SecretKeyUtil.readEncryptedSecretFromEnv();
     }
 
     public RefreshToken generateRefreshToken(User user) {

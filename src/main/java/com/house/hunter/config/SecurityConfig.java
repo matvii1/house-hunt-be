@@ -4,7 +4,7 @@ import com.house.hunter.repository.UserRepository;
 import com.house.hunter.security.JwtAuthenticationFilter;
 import com.house.hunter.security.UserDetailsServiceImpl;
 import com.house.hunter.util.PasswordEncoder;
-import com.house.hunter.util.SecretKeyGenerator;
+import com.house.hunter.util.SecretKeyUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -94,8 +94,8 @@ public class SecurityConfig {
     }
 
     @Bean(name = "secretKeyGenerator")
-    public SecretKeyGenerator secretKeyGenerator() {
-        return new SecretKeyGenerator();
+    public SecretKeyUtil secretKeyGenerator() {
+        return new SecretKeyUtil();
     }
 
 

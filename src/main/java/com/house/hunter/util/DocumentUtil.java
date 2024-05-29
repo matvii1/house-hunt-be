@@ -2,7 +2,6 @@ package com.house.hunter.util;
 
 import com.house.hunter.exception.DocumentNotFoundException;
 import com.house.hunter.exception.FileOperationException;
-import com.house.hunter.exception.ImageNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -45,20 +44,14 @@ public class DocumentUtil {
         return null;
     }
 
-    public void deleteImage(String imageDirectory, String imageName) throws IOException {
-        Path imagePath = Path.of(imageDirectory, imageName);
-        if (Files.exists(imagePath)) {
-            Files.delete(imagePath);
-        } else {
-            throw new ImageNotFoundException("Image not found");
-        }
-    }
-
     public String saveDocumentToStorage(String uploadDirectory, MultipartFile document) throws IOException {
         final String uniqueFileName = UUID.randomUUID() + "_" + document.getOriginalFilename();
+        return saveDocumentToStorage(uniqueFileName, uploadDirectory, document);
+    }
 
+    public String saveDocumentToStorage(String filename, String uploadDirectory, MultipartFile document) throws IOException {
         final Path uploadPath = Path.of(uploadDirectory);
-        final Path filePath = uploadPath.resolve(uniqueFileName);
+        final Path filePath = uploadPath.resolve(filename);
 
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
@@ -71,7 +64,7 @@ public class DocumentUtil {
 
         Files.copy(document.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        return uniqueFileName;
+        return filename;
     }
 
     public void deleteDocument(String documentDirectory, String filename) throws IOException {
