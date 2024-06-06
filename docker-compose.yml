@@ -22,6 +22,14 @@ services:
       - db
       - redis
 
+  app_fe:
+    image: matvii1/hh-fe-dev
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://app:8080/api/v1
+      VITE_NODE_ENV: development
+
   db:
     image: postgres:latest
     container_name: db
